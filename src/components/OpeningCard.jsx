@@ -178,11 +178,11 @@ export default function OpeningCard({ content, onCardOpen }) {
                 </button>
 
                 <a 
-                  href="#heartfelt"
+                  href="#the-card"
                   className="btn-primary"
                   style={{ fontSize: '0.9rem', padding: '0.65rem 1.4rem' }}
                 >
-                  <span>Start Reading</span>
+                  <span>Read Your Card</span>
                   <ChevronDown size={18} />
                 </a>
               </div>

@@ -83,45 +83,6 @@ export default function Navbar({ currentView = 'card', onViewChange }) {
           >
             {soundOn ? <Volume2 size={19} /> : <VolumeX size={19} />}
           </button>
-
-          {/* Edit / View Switcher */}
-          {currentView === 'card' ? (
-            <button
-              onClick={() => {
-                playClick();
-                if (onViewChange) onViewChange('edit');
-                else window.location.pathname = '/edit';
-              }}
-              className="btn-secondary"
-              style={{
-                fontSize: '0.85rem',
-                padding: '0.5rem 0.95rem',
-                borderRadius: '9999px',
-                borderColor: 'rgba(251, 191, 36, 0.3)',
-                color: 'var(--accent-gold)'
-              }}
-            >
-              <Edit3 size={15} />
-              <span>Edit Card</span>
-            </button>
-          ) : (
-            <button
-              onClick={() => {
-                playClick();
-                if (onViewChange) onViewChange('card');
-                else window.location.pathname = '/';
-              }}
-              className="btn-primary"
-              style={{
-                fontSize: '0.85rem',
-                padding: '0.5rem 1.1rem',
-                borderRadius: '9999px'
-              }}
-            >
-              <Eye size={15} />
-              <span>View Card</span>
-            </button>
-          )}
         </div>
       </div>
     </header>

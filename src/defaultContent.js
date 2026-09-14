@@ -11,6 +11,22 @@ export const initialCardContent = {
     subtext: "Made with love, gratitude, and just the right amount of teasing.",
     buttonText: "OPEN YOUR CARD 🎁"
   },
+  letter: {
+    badge: "A Letter From The Heart ✉️",
+    title: "Happy 47th Birthday, Daddy ❤️",
+    subtitle: "To the best dad in the galaxy.",
+    salutation: "Dear Daddy,",
+    paragraphs: [
+      "Happy 47th Birthday, Daddy! Yes, you are officially 47, and I wanted to put together something special just for you.",
+      "Looking back, one of the things I appreciate most is that for 7 straight years—every single morning since middle school—you were the one driving me to school. Rain, snow, freezing mornings, or sleepy Mondays, you never missed a day. Those rides weren’t just commutes; they were quiet moments, car debates, early morning music, and subtle lessons that I’ll remember for the rest of my life.",
+      "Anyone looking at us knows that we are very different people with different personalities, quirks, and interests. But somehow, we get along so well and make the absolute best team. You’ve never forced me to be a copy of you, and you always respect and support who I am.",
+      "Most of all, I have so much respect for how you raised me. Instead of simply trying to bubble-wrap and protect me from the world, you focused on preparing me for the world. You taught me how to think, how to face reality with honesty, and how to have the confidence to handle whatever comes my way.",
+      "Whether it’s debating Star Wars lore, hearing about hockey rinks, admiring fish and aquariums, dreaming about the open road on a motorcycle, tinkering with the latest tech, or your mysterious, classified 'studying' sessions—you make life so much more fun and memorable.",
+      "Thank you for everything you do and everything you’ve sacrificed for me. I love you, I appreciate you, and I’m so proud to call you my dad."
+    ],
+    signOff: "With all my love and respect,",
+    signature: "Your Kid ❤️"
+  },
   hero: {
     tag: "A Milestone Celebration",
     heading: "47 Years of Being That Guy.",

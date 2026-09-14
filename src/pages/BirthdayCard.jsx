@@ -1,16 +1,10 @@
 import React from 'react';
 import OpeningCard from '../components/OpeningCard';
-import HeartfeltSection from '../components/HeartfeltSection';
-import SevenYearsSection from '../components/SevenYearsSection';
-import PreparingSection from '../components/PreparingSection';
-import LikesSection from '../components/LikesSection';
-import DadStatsSection from '../components/DadStatsSection';
+import BigCardLetter from '../components/BigCardLetter';
 import PhotoGallery from '../components/PhotoGallery';
-import MiniGames from '../components/MiniGames';
 import ClosingSection from '../components/ClosingSection';
-import { Edit3 } from 'lucide-react';
 
-export default function BirthdayCard({ content, onNavigateEdit }) {
+export default function BirthdayCard({ content }) {
   return (
     <div style={{ position: 'relative', width: '100%', minHeight: '100vh' }}>
       {/* Subtle Background Glow Orbs */}
@@ -18,47 +12,30 @@ export default function BirthdayCard({ content, onNavigateEdit }) {
       <div className="bg-ambient-orb orb-2" />
       <div className="bg-ambient-orb orb-3" />
 
-      {/* Main Sections */}
+      {/* 1. Interactive Opening Digital Card */}
       <OpeningCard content={content} />
-      <HeartfeltSection content={content} />
-      <SevenYearsSection content={content} />
-      <PreparingSection content={content} />
-      <LikesSection content={content} />
-      <DadStatsSection content={content} />
+
+      {/* 2. Really Big Textbox / Card Letter */}
+      <BigCardLetter content={content} />
+
+      {/* 3. Photo Slideshow */}
       <PhotoGallery content={content} />
-      <MiniGames content={content} />
+
+      {/* 4. Grand Finale with Send Love Button */}
       <ClosingSection content={content} />
 
-      {/* Discreet Footer with Edit Link */}
+      {/* Clean Footer (No Edit Buttons) */}
       <footer style={{
-        padding: '2.5rem 0 3.5rem 0',
+        padding: '3rem 0 4rem 0',
         borderTop: '1px solid rgba(255, 255, 255, 0.08)',
         textAlign: 'center',
         position: 'relative',
         zIndex: 10
       }}>
         <div className="container">
-          <p style={{ fontSize: '0.88rem', color: 'var(--text-subtle)', marginBottom: '0.8rem' }}>
-            Built with all my heart for Daddy's 47th Birthday • 60% heartfelt, 40% funny.
+          <p style={{ fontSize: '0.92rem', color: 'var(--text-muted)' }}>
+            Made with all my heart for Daddy's 47th Birthday ❤️
           </p>
-          <button
-            onClick={onNavigateEdit}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              fontSize: '0.82rem',
-              color: 'var(--accent-gold)',
-              opacity: 0.85,
-              padding: '0.35rem 0.8rem',
-              borderRadius: '9999px',
-              backgroundColor: 'rgba(251, 191, 36, 0.08)',
-              border: '1px solid rgba(251, 191, 36, 0.2)'
-            }}
-          >
-            <Edit3 size={13} />
-            <span>Customize this card at /edit</span>
-          </button>
         </div>
       </footer>
     </div>
