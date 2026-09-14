@@ -202,6 +202,51 @@ export default function PhotoGallery({ content }) {
               {currentPhoto.caption}
             </p>
 
+            {/* Thumbnail Navigation Row */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: '0.6rem',
+              overflowX: 'auto',
+              padding: '0.4rem 0.2rem 1rem 0.2rem',
+              scrollbarWidth: 'none'
+            }}>
+              {photos.map((p, idx) => (
+                <button
+                  key={p.id || idx}
+                  onClick={() => {
+                    playClick();
+                    setCurrentIndex(idx);
+                  }}
+                  title={`View photo ${idx + 1}`}
+                  style={{
+                    width: '56px',
+                    height: '42px',
+                    borderRadius: '6px',
+                    overflow: 'hidden',
+                    border: idx === currentIndex ? '2px solid var(--accent-gold)' : '1px solid rgba(255, 255, 255, 0.2)',
+                    opacity: idx === currentIndex ? 1 : 0.55,
+                    cursor: 'pointer',
+                    padding: 0,
+                    backgroundColor: '#000000',
+                    flexShrink: 0,
+                    transition: 'all 0.2s ease',
+                    transform: idx === currentIndex ? 'scale(1.08)' : 'scale(1)'
+                  }}
+                >
+                  <img 
+                    src={p.url} 
+                    alt="" 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    onError={(e) => {
+                      e.target.src = 'https://images.unsplash.com/photo-1542037104857-ffbb0b9155fb?auto=format&fit=crop&w=1200&q=80';
+                    }}
+                  />
+                </button>
+              ))}
+            </div>
+
             {/* Dots */}
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
               {photos.map((_, idx) => (
@@ -225,7 +270,7 @@ export default function PhotoGallery({ content }) {
             </div>
 
             <div style={{ fontSize: '0.78rem', color: 'var(--text-subtle)', marginTop: '0.6rem' }}>
-              Photo {currentIndex + 1} of {photos.length} • Swipe to change
+              Photo {currentIndex + 1} of {photos.length} • Tap thumbnails or swipe to view
             </div>
           </div>
         </div>

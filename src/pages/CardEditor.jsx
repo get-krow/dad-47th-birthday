@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Save, 
   Eye, 
@@ -10,15 +10,11 @@ import {
   MoveUp, 
   MoveDown, 
   CheckCircle2, 
-  AlertCircle,
   Sparkles,
   Heart,
-  Car,
-  Compass,
-  Trophy,
-  BarChart3,
   Image as ImageIcon,
-  Gamepad2
+  Camera,
+  FileText
 } from 'lucide-react';
 import { 
   saveCardContent, 
@@ -29,25 +25,65 @@ import {
 } from '../services/storage';
 import { playClick } from '../services/soundEffects';
 
+// Helper to compress images so they never exceed browser LocalStorage quota
+function compressImageFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        const maxDim = 1200;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        resolve(dataUrl);
+      };
+      img.onerror = () => reject(new Error('Failed to load image file'));
+      img.src = e.target.result;
+    };
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function CardEditor({ content, onSave, onNavigateCard }) {
   const [formData, setFormData] = useState(() => JSON.parse(JSON.stringify(content)));
-  const [activeTab, setActiveTab] = useState('opening');
+  const [activeTab, setActiveTab] = useState('letter'); // 'letter' | 'photos' | 'opening'
   const [savedStatus, setSavedStatus] = useState(null); // null | 'saving' | 'saved' | 'error'
   const [saveMessage, setSaveMessage] = useState('');
+  const fileInputRef = useRef(null);
   const storageInfo = getStorageMode();
 
   useEffect(() => {
     setFormData(JSON.parse(JSON.stringify(content)));
   }, [content]);
 
-  const handleFieldChange = (section, field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [section]: {
-        ...prev[section],
-        [field]: value
-      }
-    }));
+  // Synchronize and auto-save helper
+  const updateAndAutoSave = async (updatedData, message = '✓ Saved!') => {
+    setFormData(updatedData);
+    onSave(updatedData);
+    try {
+      await saveCardContent(updatedData);
+      setSavedStatus('saved');
+      setSaveMessage(message);
+      setTimeout(() => setSavedStatus(null), 3000);
+    } catch (err) {
+      console.error('Auto-save error:', err);
+    }
   };
 
   const handleSave = async () => {
@@ -64,6 +100,16 @@ export default function CardEditor({ content, onSave, onNavigateCard }) {
     } catch (err) {
       setSavedStatus('error');
       setSaveMessage('Error saving changes: ' + err.message);
+    }
+  };
+
+  // Preview button: always saves before navigating to ensure card has latest edits!
+  const handlePreview = async () => {
+    playClick();
+    await saveCardContent(formData);
+    onSave(formData);
+    if (onNavigateCard) {
+      onNavigateCard();
     }
   };
 
@@ -103,71 +149,156 @@ export default function CardEditor({ content, onSave, onNavigateCard }) {
     reader.readAsText(file);
   };
 
-  // Photo handlers
-  const handleAddPhoto = () => {
+  // -------------------------------------------------------------
+  // Photo Handlers (With Instant Auto-Sync to Card!)
+  // -------------------------------------------------------------
+  const handleAddBlankPhoto = () => {
     playClick();
     const newPhoto = {
       id: 'photo-' + Date.now(),
-      url: 'https://images.unsplash.com/photo-1542037104857-ffbb0b9155fb?auto=format&fit=crop&w=1200&q=80',
+      url: 'https://images.unsplash.com/photo-1511895426328-dc8714191300?auto=format&fit=crop&w=1200&q=80',
       caption: 'New unforgettable memory with Dad ❤️'
     };
-    setFormData(prev => ({
-      ...prev,
-      photos: [...(prev.photos || []), newPhoto]
-    }));
+    const updatedPhotos = [...(formData.photos || []), newPhoto];
+    const updated = { ...formData, photos: updatedPhotos };
+    updateAndAutoSave(updated, '✓ New photo added and saved to card!');
   };
 
-  const handlePhotoUpload = (index, e) => {
+  // Quick Direct File Upload for New Photo
+  const handleDirectNewPhotoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (uploadEvent) => {
-      const base64 = uploadEvent.target.result;
-      setFormData(prev => {
-        const updated = [...prev.photos];
-        updated[index] = { ...updated[index], url: base64 };
-        return { ...prev, photos: updated };
-      });
-    };
-    reader.readAsDataURL(file);
+    try {
+      playClick();
+      setSavedStatus('saving');
+      const base64 = await compressImageFile(file);
+      const newPhoto = {
+        id: 'photo-' + Date.now(),
+        url: base64,
+        caption: 'Special moment with Dad ❤️'
+      };
+      const updatedPhotos = [...(formData.photos || []), newPhoto];
+      const updated = { ...formData, photos: updatedPhotos };
+      updateAndAutoSave(updated, '✓ Photo uploaded and added to card!');
+    } catch (err) {
+      alert('Error processing image: ' + err.message);
+      setSavedStatus(null);
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handlePhotoUploadForIndex = async (index, e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      playClick();
+      setSavedStatus('saving');
+      const base64 = await compressImageFile(file);
+      const updatedPhotos = [...(formData.photos || [])];
+      updatedPhotos[index] = { ...updatedPhotos[index], url: base64 };
+      const updated = { ...formData, photos: updatedPhotos };
+      updateAndAutoSave(updated, '✓ Photo updated and saved!');
+    } catch (err) {
+      alert('Error uploading photo: ' + err.message);
+      setSavedStatus(null);
+    }
   };
 
   const handleDeletePhoto = (index) => {
+    if (formData.photos.length <= 1) {
+      alert("Please keep at least 1 photo in your slideshow!");
+      return;
+    }
     playClick();
-    setFormData(prev => ({
-      ...prev,
-      photos: prev.photos.filter((_, i) => i !== index)
-    }));
+    const updatedPhotos = formData.photos.filter((_, i) => i !== index);
+    const updated = { ...formData, photos: updatedPhotos };
+    updateAndAutoSave(updated, '✓ Photo removed from card!');
   };
 
   const handleMovePhoto = (index, dir) => {
     playClick();
-    setFormData(prev => {
-      const photos = [...prev.photos];
-      const target = index + dir;
-      if (target < 0 || target >= photos.length) return prev;
-      const temp = photos[index];
-      photos[index] = photos[target];
-      photos[target] = temp;
-      return { ...prev, photos };
-    });
+    const photos = [...(formData.photos || [])];
+    const target = index + dir;
+    if (target < 0 || target >= photos.length) return;
+    const temp = photos[index];
+    photos[index] = photos[target];
+    photos[target] = temp;
+    const updated = { ...formData, photos };
+    updateAndAutoSave(updated, '✓ Photos reordered!');
+  };
+
+  const handlePhotoCaptionChange = (index, newCaption) => {
+    const updatedPhotos = [...(formData.photos || [])];
+    updatedPhotos[index] = { ...updatedPhotos[index], caption: newCaption };
+    const updated = { ...formData, photos: updatedPhotos };
+    setFormData(updated);
+    onSave(updated);
+  };
+
+  const handlePhotoUrlChange = (index, newUrl) => {
+    const updatedPhotos = [...(formData.photos || [])];
+    updatedPhotos[index] = { ...updatedPhotos[index], url: newUrl };
+    const updated = { ...formData, photos: updatedPhotos };
+    setFormData(updated);
+    onSave(updated);
+  };
+
+  // -------------------------------------------------------------
+  // Letter Handlers
+  // -------------------------------------------------------------
+  const letterParagraphs = formData.letter?.paragraphs || [];
+  
+  const handleParagraphChange = (index, text) => {
+    const updatedParas = [...letterParagraphs];
+    updatedParas[index] = text;
+    const updated = {
+      ...formData,
+      letter: {
+        ...(formData.letter || {}),
+        paragraphs: updatedParas
+      }
+    };
+    setFormData(updated);
+    onSave(updated);
+  };
+
+  const handleAddParagraph = () => {
+    playClick();
+    const updatedParas = [...letterParagraphs, "Add your new thought here..."];
+    const updated = {
+      ...formData,
+      letter: {
+        ...(formData.letter || {}),
+        paragraphs: updatedParas
+      }
+    };
+    updateAndAutoSave(updated, '✓ Paragraph added!');
+  };
+
+  const handleDeleteParagraph = (index) => {
+    playClick();
+    const updatedParas = letterParagraphs.filter((_, i) => i !== index);
+    const updated = {
+      ...formData,
+      letter: {
+        ...(formData.letter || {}),
+        paragraphs: updatedParas
+      }
+    };
+    updateAndAutoSave(updated, '✓ Paragraph removed!');
   };
 
   const tabs = [
-    { id: 'opening', label: '1. Opening & Names', icon: Sparkles },
-    { id: 'heartfelt', label: '2. Us & Differences', icon: Heart },
-    { id: 'sevenYears', label: '3. 7 Years Driving', icon: Car },
-    { id: 'preparing', label: '4. Preparing For World', icon: Compass },
-    { id: 'likes', label: '5. Things He Likes', icon: Trophy },
-    { id: 'stats', label: '6. Funny Stats', icon: BarChart3 },
-    { id: 'photos', label: '7. Photo Slideshow', icon: ImageIcon },
-    { id: 'minigames', label: '8. Mini-Games & Closing', icon: Gamepad2 }
+    { id: 'letter', label: '1. The Card Letter (Big Textbox)', icon: FileText },
+    { id: 'photos', label: `2. Photo Slideshow (${formData.photos?.length || 0})`, icon: ImageIcon },
+    { id: 'opening', label: '3. Opening Card Details', icon: Sparkles }
   ];
 
   return (
     <div style={{ padding: '2rem 0 6rem 0', minHeight: '100vh', position: 'relative' }}>
       <div className="container">
-        {/* Editor Header Bar */}
+        {/* Editor Header */}
         <div style={{
           display: 'flex',
           flexWrap: 'wrap',
@@ -181,7 +312,7 @@ export default function CardEditor({ content, onSave, onNavigateCard }) {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.3rem' }}>
               <h1 style={{ fontSize: 'clamp(1.6rem, 4vw, 2.4rem)', fontWeight: 800 }}>
-                Card Visual Editor
+                Card Editor
               </h1>
               <span style={{
                 fontSize: '0.78rem',
@@ -196,14 +327,14 @@ export default function CardEditor({ content, onSave, onNavigateCard }) {
               </span>
             </div>
             <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-              Customize words, photos, stories, and jokes. Hit <strong>SAVE CHANGES</strong> to immediately update the live card.
+              Write your letter, add photos, and customize your dad's card. Everything auto-syncs to the live card!
             </p>
           </div>
 
-          {/* Top Actions */}
+          {/* Action Buttons */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
             <button
-              onClick={onNavigateCard}
+              onClick={handlePreview}
               className="btn-secondary"
               style={{ fontSize: '0.9rem', padding: '0.65rem 1.2rem' }}
             >
@@ -249,18 +380,17 @@ export default function CardEditor({ content, onSave, onNavigateCard }) {
             animation: 'floatGentle 0.3s ease'
           }}>
             <CheckCircle2 size={20} />
-            <span>{saveMessage} The main card at `/` is updated!</span>
+            <span>{saveMessage}</span>
           </div>
         )}
 
-        {/* Tab Navigation */}
+        {/* Tab Switcher */}
         <div style={{
           display: 'flex',
-          gap: '0.5rem',
+          gap: '0.6rem',
           overflowX: 'auto',
           paddingBottom: '0.8rem',
-          marginBottom: '2rem',
-          scrollbarWidth: 'none'
+          marginBottom: '2rem'
         }}>
           {tabs.map((t) => {
             const IconComp = t.icon;
@@ -275,11 +405,11 @@ export default function CardEditor({ content, onSave, onNavigateCard }) {
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.45rem',
-                  padding: '0.6rem 1.1rem',
+                  gap: '0.5rem',
+                  padding: '0.7rem 1.25rem',
                   borderRadius: '9999px',
-                  fontSize: '0.88rem',
-                  fontWeight: 600,
+                  fontSize: '0.92rem',
+                  fontWeight: 700,
                   whiteSpace: 'nowrap',
                   cursor: 'pointer',
                   backgroundColor: isActive ? 'var(--accent-gold)' : 'rgba(255, 255, 255, 0.05)',
@@ -288,493 +418,242 @@ export default function CardEditor({ content, onSave, onNavigateCard }) {
                   transition: 'all 0.2s ease'
                 }}
               >
-                <IconComp size={16} />
+                <IconComp size={17} />
                 <span>{t.label}</span>
               </button>
             );
           })}
         </div>
 
-        {/* Tab 1: Opening & Basic Info */}
-        {activeTab === 'opening' && (
-          <div className="glass-card" style={{ padding: '2rem' }}>
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '1.5rem' }}>
-              Core Details & Opening Screen
-            </h2>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.2rem' }}>
-              <div className="form-group">
-                <label className="form-label">Dad's Nickname / Title</label>
-                <input 
-                  type="text" 
-                  className="form-input"
-                  value={formData.dadName || ''}
-                  onChange={(e) => setFormData(p => ({ ...p, dadName: e.target.value }))}
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Birthday Age</label>
-                <input 
-                  type="number" 
-                  className="form-input"
-                  value={formData.birthdayAge || 47}
-                  onChange={(e) => setFormData(p => ({ ...p, birthdayAge: parseInt(e.target.value) || 47 }))}
-                />
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Opening Card Title</label>
-              <input 
-                type="text" 
-                className="form-input"
-                value={formData.opening?.title || ''}
-                onChange={(e) => handleFieldChange('opening', 'title', e.target.value)}
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Funny Subtitle (e.g. "Yes, you're officially 47.")</label>
-              <input 
-                type="text" 
-                className="form-input"
-                value={formData.opening?.funnySubtitle || ''}
-                onChange={(e) => handleFieldChange('opening', 'funnySubtitle', e.target.value)}
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Opening Subtext</label>
-              <textarea 
-                className="form-textarea"
-                value={formData.opening?.subtext || ''}
-                onChange={(e) => handleFieldChange('opening', 'subtext', e.target.value)}
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Open Button Text</label>
-              <input 
-                type="text" 
-                className="form-input"
-                value={formData.opening?.buttonText || ''}
-                onChange={(e) => handleFieldChange('opening', 'buttonText', e.target.value)}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Tab 2: Us & Differences */}
-        {activeTab === 'heartfelt' && (
-          <div className="glass-card" style={{ padding: '2rem' }}>
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '1.5rem' }}>
-              Heartfelt Message: Our Dynamic & Differences
-            </h2>
-
-            <div className="form-group">
-              <label className="form-label">Section Title</label>
-              <input 
-                type="text" 
-                className="form-input"
-                value={formData.heartfelt?.title || ''}
-                onChange={(e) => handleFieldChange('heartfelt', 'title', e.target.value)}
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Section Subtitle</label>
-              <input 
-                type="text" 
-                className="form-input"
-                value={formData.heartfelt?.subtitle || ''}
-                onChange={(e) => handleFieldChange('heartfelt', 'subtitle', e.target.value)}
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Paragraph 1 (Different personalities & quirks)</label>
-              <textarea 
-                className="form-textarea"
-                value={formData.heartfelt?.paragraphs?.[0] || ''}
-                onChange={(e) => {
-                  const paras = [...(formData.heartfelt?.paragraphs || [])];
-                  paras[0] = e.target.value;
-                  handleFieldChange('heartfelt', 'paragraphs', paras);
-                }}
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Paragraph 2 (How well we click & understanding)</label>
-              <textarea 
-                className="form-textarea"
-                value={formData.heartfelt?.paragraphs?.[1] || ''}
-                onChange={(e) => {
-                  const paras = [...(formData.heartfelt?.paragraphs || [])];
-                  paras[1] = e.target.value;
-                  handleFieldChange('heartfelt', 'paragraphs', paras);
-                }}
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Paragraph 3 (Appreciation for letting me be me)</label>
-              <textarea 
-                className="form-textarea"
-                value={formData.heartfelt?.paragraphs?.[2] || ''}
-                onChange={(e) => {
-                  const paras = [...(formData.heartfelt?.paragraphs || [])];
-                  paras[2] = e.target.value;
-                  handleFieldChange('heartfelt', 'paragraphs', paras);
-                }}
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Summary Quote Banner</label>
-              <input 
-                type="text" 
-                className="form-input"
-                value={formData.heartfelt?.quote || ''}
-                onChange={(e) => handleFieldChange('heartfelt', 'quote', e.target.value)}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Tab 3: 7 Years Driving */}
-        {activeTab === 'sevenYears' && (
-          <div className="glass-card" style={{ padding: '2rem' }}>
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '1.5rem' }}>
-              7 Years Driving Me to School
-            </h2>
-
-            <div className="form-group">
-              <label className="form-label">Section Title</label>
-              <input 
-                type="text" 
-                className="form-input"
-                value={formData.sevenYears?.title || ''}
-                onChange={(e) => handleFieldChange('sevenYears', 'title', e.target.value)}
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Section Subtitle</label>
-              <input 
-                type="text" 
-                className="form-input"
-                value={formData.sevenYears?.subtitle || ''}
-                onChange={(e) => handleFieldChange('sevenYears', 'subtitle', e.target.value)}
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Intro Text</label>
-              <textarea 
-                className="form-textarea"
-                value={formData.sevenYears?.intro || ''}
-                onChange={(e) => handleFieldChange('sevenYears', 'intro', e.target.value)}
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Deep Reflection (The morning drives & conversations)</label>
-              <textarea 
-                className="form-textarea"
-                value={formData.sevenYears?.reflection || ''}
-                onChange={(e) => handleFieldChange('sevenYears', 'reflection', e.target.value)}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Tab 4: Preparing Me For The World */}
-        {activeTab === 'preparing' && (
-          <div className="glass-card" style={{ padding: '2rem' }}>
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '1.5rem' }}>
-              Preparing Me For The World
-            </h2>
-
-            <div className="form-group">
-              <label className="form-label">Core Philosophy / Main Thought</label>
-              <textarea 
-                className="form-textarea"
-                value={formData.preparingWorld?.mainThought || ''}
-                onChange={(e) => handleFieldChange('preparingWorld', 'mainThought', e.target.value)}
-              />
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', marginTop: '1.5rem' }}>
-              {(formData.preparingWorld?.pillars || []).map((pillar, idx) => (
-                <div key={idx} style={{
-                  padding: '1.2rem',
-                  backgroundColor: 'rgba(0, 0, 0, 0.35)',
-                  borderRadius: 'var(--radius-md)',
-                  border: '1px solid rgba(255, 255, 255, 0.08)'
-                }}>
-                  <div className="form-group" style={{ marginBottom: '0.6rem' }}>
-                    <label className="form-label">Pillar {idx + 1} Title</label>
-                    <input 
-                      type="text" 
-                      className="form-input"
-                      value={pillar.title}
-                      onChange={(e) => {
-                        const updated = [...formData.preparingWorld.pillars];
-                        updated[idx].title = e.target.value;
-                        handleFieldChange('preparingWorld', 'pillars', updated);
-                      }}
-                    />
-                  </div>
-                  <div className="form-group" style={{ marginBottom: 0 }}>
-                    <label className="form-label">Pillar {idx + 1} Explanation</label>
-                    <textarea 
-                      className="form-textarea"
-                      value={pillar.desc}
-                      onChange={(e) => {
-                        const updated = [...formData.preparingWorld.pillars];
-                        updated[idx].desc = e.target.value;
-                        handleFieldChange('preparingWorld', 'pillars', updated);
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="form-group" style={{ marginTop: '1.5rem' }}>
-              <label className="form-label">Closing Philosophy Quote</label>
-              <input 
-                type="text" 
-                className="form-input"
-                value={formData.preparingWorld?.closingQuote || ''}
-                onChange={(e) => handleFieldChange('preparingWorld', 'closingQuote', e.target.value)}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Tab 5: Things He Likes */}
-        {activeTab === 'likes' && (
-          <div className="glass-card" style={{ padding: '2rem' }}>
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '1.5rem' }}>
-              Things Daddy Likes (6 Cards)
-            </h2>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.4rem' }}>
-              {(formData.thingsHeLikes?.items || []).map((item, idx) => (
-                <div key={item.id} style={{
-                  padding: '1.2rem',
-                  backgroundColor: 'rgba(0, 0, 0, 0.35)',
-                  borderRadius: 'var(--radius-md)',
-                  border: `1px solid ${item.color || 'rgba(255,255,255,0.1)'}`
-                }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '0.8rem' }}>
-                    <div>
-                      <label className="form-label">Card Title</label>
-                      <input 
-                        type="text" 
-                        className="form-input"
-                        value={item.name}
-                        onChange={(e) => {
-                          const updated = [...formData.thingsHeLikes.items];
-                          updated[idx].name = e.target.value;
-                          handleFieldChange('thingsHeLikes', 'items', updated);
-                        }}
-                      />
-                    </div>
-                    <div>
-                      <label className="form-label">Sub-Tagline</label>
-                      <input 
-                        type="text" 
-                        className="form-input"
-                        value={item.tagline}
-                        onChange={(e) => {
-                          const updated = [...formData.thingsHeLikes.items];
-                          updated[idx].tagline = e.target.value;
-                          handleFieldChange('thingsHeLikes', 'items', updated);
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="form-group" style={{ marginBottom: '0.8rem' }}>
-                    <label className="form-label">Description</label>
-                    <textarea 
-                      className="form-textarea"
-                      style={{ minHeight: '60px' }}
-                      value={item.description}
-                      onChange={(e) => {
-                        const updated = [...formData.thingsHeLikes.items];
-                        updated[idx].description = e.target.value;
-                        handleFieldChange('thingsHeLikes', 'items', updated);
-                      }}
-                    />
-                  </div>
-
-                  <div className="form-group" style={{ marginBottom: 0 }}>
-                    <label className="form-label">Funny Dad Rating / Note (revealed on tap)</label>
-                    <input 
-                      type="text" 
-                      className="form-input"
-                      value={item.funnyNote}
-                      onChange={(e) => {
-                        const updated = [...formData.thingsHeLikes.items];
-                        updated[idx].funnyNote = e.target.value;
-                        handleFieldChange('thingsHeLikes', 'items', updated);
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Tab 6: Funny Stats */}
-        {activeTab === 'stats' && (
-          <div className="glass-card" style={{ padding: '2rem' }}>
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '1.5rem' }}>
-              Funny Dad Stats (47-Year Edition)
-            </h2>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {(formData.dadStats?.stats || []).map((stat, idx) => (
-                <div key={idx} style={{
-                  display: 'grid',
-                  gridTemplateColumns: '2fr 1fr 1fr',
-                  gap: '0.8rem',
-                  alignItems: 'center',
-                  padding: '0.8rem',
-                  backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                  borderRadius: 'var(--radius-sm)'
-                }}>
-                  <div>
-                    <label className="form-label" style={{ fontSize: '0.78rem' }}>Stat Label</label>
-                    <input 
-                      type="text" 
-                      className="form-input"
-                      value={stat.label}
-                      onChange={(e) => {
-                        const updated = [...formData.dadStats.stats];
-                        updated[idx].label = e.target.value;
-                        handleFieldChange('dadStats', 'stats', updated);
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <label className="form-label" style={{ fontSize: '0.78rem' }}>Display Value</label>
-                    <input 
-                      type="text" 
-                      className="form-input"
-                      value={stat.value}
-                      onChange={(e) => {
-                        const updated = [...formData.dadStats.stats];
-                        updated[idx].value = e.target.value;
-                        handleFieldChange('dadStats', 'stats', updated);
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <label className="form-label" style={{ fontSize: '0.78rem' }}>Bar % (0-100)</label>
-                    <input 
-                      type="number" 
-                      className="form-input"
-                      value={stat.percent}
-                      onChange={(e) => {
-                        const updated = [...formData.dadStats.stats];
-                        updated[idx].percent = parseInt(e.target.value) || 0;
-                        handleFieldChange('dadStats', 'stats', updated);
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Tab 7: Photos & Slideshow */}
-        {activeTab === 'photos' && (
-          <div className="glass-card" style={{ padding: '2rem' }}>
+        {/* TAB 1: The Big Card Letter */}
+        {activeTab === 'letter' && (
+          <div className="glass-card" style={{ padding: 'clamp(1.5rem, 4vw, 2.5rem)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.8rem' }}>
               <div>
-                <h2 style={{ fontSize: '1.4rem', fontWeight: 800 }}>
-                  Photo Slideshow Manager
+                <h2 style={{ fontSize: '1.45rem', fontWeight: 800 }}>
+                  The Card Letter (Big Textbox)
                 </h2>
                 <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>
-                  Upload local photos, paste image links, reorder, or update captions.
+                  This is the main letter displayed on the card. Write freely and heartfelt.
                 </p>
               </div>
 
               <button
-                onClick={handleAddPhoto}
-                className="btn-primary"
-                style={{ fontSize: '0.88rem', padding: '0.55rem 1.1rem' }}
+                onClick={handleAddParagraph}
+                className="btn-secondary"
+                style={{ fontSize: '0.86rem' }}
               >
-                <Plus size={16} />
-                <span>Add Photo</span>
+                <Plus size={15} />
+                <span>Add Paragraph</span>
               </button>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.4rem' }}>
-              {(formData.photos || []).map((photo, idx) => (
-                <div key={photo.id || idx} style={{
+            {/* Salutation */}
+            <div className="form-group">
+              <label className="form-label">Salutation (Opening Greeting)</label>
+              <input 
+                type="text" 
+                className="form-input"
+                value={formData.letter?.salutation || `Dear ${formData.dadName || 'Daddy'},`}
+                onChange={(e) => {
+                  const updated = {
+                    ...formData,
+                    letter: { ...(formData.letter || {}), salutation: e.target.value }
+                  };
+                  setFormData(updated);
+                  onSave(updated);
+                }}
+              />
+            </div>
+
+            {/* Paragraph Textboxes */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.4rem', marginTop: '1rem' }}>
+              {letterParagraphs.map((p, idx) => (
+                <div key={idx} style={{
                   padding: '1.2rem',
                   backgroundColor: 'rgba(0, 0, 0, 0.4)',
                   borderRadius: 'var(--radius-md)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--accent-gold)' }}>
+                      Paragraph {idx + 1}
+                    </span>
+                    {letterParagraphs.length > 1 && (
+                      <button
+                        onClick={() => handleDeleteParagraph(idx)}
+                        title="Delete paragraph"
+                        style={{ color: '#f43f5e', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    )}
+                  </div>
+                  <textarea 
+                    className="form-textarea"
+                    style={{ minHeight: '110px', fontSize: '1rem', lineHeight: '1.7' }}
+                    value={p}
+                    onChange={(e) => handleParagraphChange(idx, e.target.value)}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Sign-Off & Signature */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.2rem', marginTop: '1.8rem' }}>
+              <div className="form-group">
+                <label className="form-label">Sign-Off</label>
+                <input 
+                  type="text" 
+                  className="form-input"
+                  value={formData.letter?.signOff || 'With all my love and respect,'}
+                  onChange={(e) => {
+                    const updated = {
+                      ...formData,
+                      letter: { ...(formData.letter || {}), signOff: e.target.value }
+                    };
+                    setFormData(updated);
+                    onSave(updated);
+                  }}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Signature</label>
+                <input 
+                  type="text" 
+                  className="form-input"
+                  value={formData.letter?.signature || 'Your Kid ❤️'}
+                  onChange={(e) => {
+                    const updated = {
+                      ...formData,
+                      letter: { ...(formData.letter || {}), signature: e.target.value }
+                    };
+                    setFormData(updated);
+                    onSave(updated);
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 2: Photo Slideshow Manager */}
+        {activeTab === 'photos' && (
+          <div className="glass-card" style={{ padding: 'clamp(1.5rem, 4vw, 2.5rem)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.8rem' }}>
+              <div>
+                <h2 style={{ fontSize: '1.45rem', fontWeight: 800 }}>
+                  Photo Slideshow ({formData.photos?.length || 0} Photos)
+                </h2>
+                <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>
+                  Upload photos from your computer/phone or enter image links. Every photo added here immediately appears in the card!
+                </p>
+              </div>
+
+              {/* Add & Upload Buttons */}
+              <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+                {/* Direct Upload New Photo */}
+                <label 
+                  className="btn-primary"
+                  style={{ fontSize: '0.9rem', padding: '0.6rem 1.2rem', cursor: 'pointer' }}
+                >
+                  <Camera size={17} />
+                  <span>Upload Photo</span>
+                  <input 
+                    ref={fileInputRef}
+                    type="file" 
+                    accept="image/*" 
+                    style={{ display: 'none' }}
+                    onChange={handleDirectNewPhotoUpload}
+                  />
+                </label>
+
+                {/* Add Photo with URL */}
+                <button
+                  onClick={handleAddBlankPhoto}
+                  className="btn-secondary"
+                  style={{ fontSize: '0.9rem', padding: '0.6rem 1.2rem' }}
+                >
+                  <Plus size={17} />
+                  <span>Add Photo by URL</span>
+                </button>
+              </div>
+            </div>
+
+            {/* List of Photos */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.4rem' }}>
+              {(formData.photos || []).map((photo, idx) => (
+                <div key={photo.id || idx} style={{
+                  padding: '1.4rem',
+                  backgroundColor: 'rgba(0, 0, 0, 0.45)',
+                  borderRadius: 'var(--radius-md)',
                   border: '1px solid rgba(255, 255, 255, 0.1)',
                   display: 'grid',
-                  gridTemplateColumns: 'clamp(100px, 20vw, 150px) 1fr auto',
-                  gap: '1.2rem',
+                  gridTemplateColumns: 'clamp(110px, 22vw, 160px) 1fr auto',
+                  gap: '1.4rem',
                   alignItems: 'center'
                 }}>
-                  {/* Photo Preview Thumbnail */}
+                  {/* Photo Thumbnail */}
                   <div style={{
                     width: '100%',
                     aspectRatio: '4 / 3',
                     borderRadius: '8px',
                     overflow: 'hidden',
-                    backgroundColor: '#000000',
-                    border: '1px solid rgba(255, 255, 255, 0.15)'
+                    backgroundColor: '#050810',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    position: 'relative'
                   }}>
                     <img 
                       src={photo.url} 
-                      alt={photo.caption} 
+                      alt={photo.caption || "Thumbnail"} 
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      onError={(e) => {
+                        e.target.src = 'https://images.unsplash.com/photo-1542037104857-ffbb0b9155fb?auto=format&fit=crop&w=1200&q=80';
+                      }}
                     />
+                    <div style={{
+                      position: 'absolute',
+                      top: '4px',
+                      left: '4px',
+                      backgroundColor: 'rgba(0,0,0,0.7)',
+                      color: 'var(--accent-gold)',
+                      fontSize: '0.72rem',
+                      fontWeight: 800,
+                      padding: '2px 6px',
+                      borderRadius: '4px'
+                    }}>
+                      #{idx + 1}
+                    </div>
                   </div>
 
-                  {/* Photo Details */}
+                  {/* Photo Controls */}
                   <div>
                     <div className="form-group" style={{ marginBottom: '0.8rem' }}>
-                      <label className="form-label" style={{ fontSize: '0.8rem' }}>Image URL or File</label>
+                      <label className="form-label" style={{ fontSize: '0.8rem' }}>
+                        Image Source (URL or Upload replacement)
+                      </label>
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
                         <input 
                           type="text" 
                           className="form-input"
-                          value={photo.url}
+                          value={photo.url.startsWith('data:image') ? '[Uploaded Image File]' : photo.url}
                           placeholder="https://..."
-                          onChange={(e) => {
-                            const updated = [...formData.photos];
-                            updated[idx].url = e.target.value;
-                            setFormData(p => ({ ...p, photos: updated }));
-                          }}
+                          onChange={(e) => handlePhotoUrlChange(idx, e.target.value)}
                         />
                         <label className="btn-secondary" style={{
-                          fontSize: '0.78rem',
-                          padding: '0.5rem 0.8rem',
+                          fontSize: '0.8rem',
+                          padding: '0.5rem 0.85rem',
                           cursor: 'pointer',
                           flexShrink: 0
                         }}>
                           <Upload size={14} />
-                          <span>Upload</span>
+                          <span>Replace</span>
                           <input 
                             type="file" 
                             accept="image/*" 
                             style={{ display: 'none' }}
-                            onChange={(e) => handlePhotoUpload(idx, e)}
+                            onChange={(e) => handlePhotoUploadForIndex(idx, e)}
                           />
                         </label>
                       </div>
@@ -785,22 +664,18 @@ export default function CardEditor({ content, onSave, onNavigateCard }) {
                       <input 
                         type="text" 
                         className="form-input"
-                        value={photo.caption}
-                        onChange={(e) => {
-                          const updated = [...formData.photos];
-                          updated[idx].caption = e.target.value;
-                          setFormData(p => ({ ...p, photos: updated }));
-                        }}
+                        value={photo.caption || ''}
+                        onChange={(e) => handlePhotoCaptionChange(idx, e.target.value)}
                       />
                     </div>
                   </div>
 
-                  {/* Action Buttons */}
+                  {/* Order & Delete Buttons */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                     <button
                       onClick={() => handleMovePhoto(idx, -1)}
                       disabled={idx === 0}
-                      title="Move up"
+                      title="Move earlier in slideshow"
                       className="btn-secondary"
                       style={{ padding: '6px', borderRadius: '6px', opacity: idx === 0 ? 0.3 : 1 }}
                     >
@@ -809,7 +684,7 @@ export default function CardEditor({ content, onSave, onNavigateCard }) {
                     <button
                       onClick={() => handleMovePhoto(idx, 1)}
                       disabled={idx === formData.photos.length - 1}
-                      title="Move down"
+                      title="Move later in slideshow"
                       className="btn-secondary"
                       style={{ padding: '6px', borderRadius: '6px', opacity: idx === formData.photos.length - 1 ? 0.3 : 1 }}
                     >
@@ -830,136 +705,97 @@ export default function CardEditor({ content, onSave, onNavigateCard }) {
           </div>
         )}
 
-        {/* Tab 8: Mini-Games & Closing */}
-        {activeTab === 'minigames' && (
-          <div className="glass-card" style={{ padding: '2rem' }}>
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '1.5rem' }}>
-              Mini-Games & Final Closing Section
+        {/* TAB 3: Opening Card Details */}
+        {activeTab === 'opening' && (
+          <div className="glass-card" style={{ padding: 'clamp(1.5rem, 4vw, 2.5rem)' }}>
+            <h2 style={{ fontSize: '1.45rem', fontWeight: 800, marginBottom: '1.5rem' }}>
+              Opening Card Screen
             </h2>
 
-            {/* Star Wars Quotes */}
-            <div style={{ marginBottom: '2rem', paddingBottom: '1.5rem', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
-              <h3 style={{ fontSize: '1.15rem', color: '#38bdf8', marginBottom: '1rem' }}>
-                Star Wars Alignment Quotes
-              </h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.2rem' }}>
               <div className="form-group">
-                <label className="form-label">Light Side Reveal Quote</label>
-                <textarea 
-                  className="form-textarea"
-                  value={formData.miniInteractions?.starWars?.lightSideQuote || ''}
+                <label className="form-label">Dad's Nickname</label>
+                <input 
+                  type="text" 
+                  className="form-input"
+                  value={formData.dadName || ''}
                   onChange={(e) => {
-                    setFormData(p => ({
-                      ...p,
-                      miniInteractions: {
-                        ...p.miniInteractions,
-                        starWars: {
-                          ...p.miniInteractions.starWars,
-                          lightSideQuote: e.target.value
-                        }
-                      }
-                    }));
+                    const updated = { ...formData, dadName: e.target.value };
+                    setFormData(updated);
+                    onSave(updated);
                   }}
                 />
               </div>
 
               <div className="form-group">
-                <label className="form-label">Dad Side Reveal Quote</label>
-                <textarea 
-                  className="form-textarea"
-                  value={formData.miniInteractions?.starWars?.darkSideQuote || ''}
+                <label className="form-label">Birthday Age</label>
+                <input 
+                  type="number" 
+                  className="form-input"
+                  value={formData.birthdayAge || 47}
                   onChange={(e) => {
-                    setFormData(p => ({
-                      ...p,
-                      miniInteractions: {
-                        ...p.miniInteractions,
-                        starWars: {
-                          ...p.miniInteractions.starWars,
-                          darkSideQuote: e.target.value
-                        }
-                      }
-                    }));
+                    const updated = { ...formData, birthdayAge: parseInt(e.target.value) || 47 };
+                    setFormData(updated);
+                    onSave(updated);
                   }}
                 />
               </div>
             </div>
 
-            {/* Hockey Goal message */}
-            <div style={{ marginBottom: '2rem', paddingBottom: '1.5rem', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
-              <h3 style={{ fontSize: '1.15rem', color: 'var(--accent-gold)', marginBottom: '1rem' }}>
-                Hockey Slap-Shot Reveal
-              </h3>
-              <div className="form-group">
-                <label className="form-label">Goal Subtext Joke</label>
-                <input 
-                  type="text" 
-                  className="form-input"
-                  value={formData.miniInteractions?.hockey?.goalSubtext || ''}
-                  onChange={(e) => {
-                    setFormData(p => ({
-                      ...p,
-                      miniInteractions: {
-                        ...p.miniInteractions,
-                        hockey: {
-                          ...p.miniInteractions.hockey,
-                          goalSubtext: e.target.value
-                        }
-                      }
-                    }));
-                  }}
-                />
-              </div>
+            <div className="form-group">
+              <label className="form-label">Opening Card Title</label>
+              <input 
+                type="text" 
+                className="form-input"
+                value={formData.opening?.title || ''}
+                onChange={(e) => {
+                  const updated = {
+                    ...formData,
+                    opening: { ...(formData.opening || {}), title: e.target.value }
+                  };
+                  setFormData(updated);
+                  onSave(updated);
+                }}
+              />
             </div>
 
-            {/* Closing Message */}
-            <div>
-              <h3 style={{ fontSize: '1.15rem', color: '#f43f5e', marginBottom: '1rem' }}>
-                Final Grand Finale Message
-              </h3>
-              <div className="form-group">
-                <label className="form-label">Closing Section Title</label>
-                <input 
-                  type="text" 
-                  className="form-input"
-                  value={formData.closing?.title || ''}
-                  onChange={(e) => handleFieldChange('closing', 'title', e.target.value)}
-                />
-              </div>
+            <div className="form-group">
+              <label className="form-label">Funny Subtitle</label>
+              <input 
+                type="text" 
+                className="form-input"
+                value={formData.opening?.funnySubtitle || ''}
+                onChange={(e) => {
+                  const updated = {
+                    ...formData,
+                    opening: { ...(formData.opening || {}), funnySubtitle: e.target.value }
+                  };
+                  setFormData(updated);
+                  onSave(updated);
+                }}
+              />
+            </div>
 
-              <div className="form-group">
-                <label className="form-label">Final Message / Words of Love</label>
-                <textarea 
-                  className="form-textarea"
-                  style={{ minHeight: '110px' }}
-                  value={formData.closing?.finalMessage || ''}
-                  onChange={(e) => handleFieldChange('closing', 'finalMessage', e.target.value)}
-                />
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-                <div className="form-group">
-                  <label className="form-label">Sign-Off</label>
-                  <input 
-                    type="text" 
-                    className="form-input"
-                    value={formData.closing?.signOff || ''}
-                    onChange={(e) => handleFieldChange('closing', 'signOff', e.target.value)}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Signature</label>
-                  <input 
-                    type="text" 
-                    className="form-input"
-                    value={formData.closing?.signature || ''}
-                    onChange={(e) => handleFieldChange('closing', 'signature', e.target.value)}
-                  />
-                </div>
-              </div>
+            <div className="form-group">
+              <label className="form-label">Button Text</label>
+              <input 
+                type="text" 
+                className="form-input"
+                value={formData.opening?.buttonText || ''}
+                onChange={(e) => {
+                  const updated = {
+                    ...formData,
+                    opening: { ...(formData.opening || {}), buttonText: e.target.value }
+                  };
+                  setFormData(updated);
+                  onSave(updated);
+                }}
+              />
             </div>
           </div>
         )}
 
-        {/* Bottom Utility Bar (Save, Export, Reset) */}
+        {/* Bottom Utility Bar */}
         <div style={{
           marginTop: '2.5rem',
           paddingTop: '2rem',
@@ -998,11 +834,11 @@ export default function CardEditor({ content, onSave, onNavigateCard }) {
               style={{ fontSize: '0.85rem', color: '#f87171', borderColor: 'rgba(239, 68, 68, 0.2)' }}
             >
               <RotateCcw size={15} />
-              <span>Reset to Defaults</span>
+              <span>Reset Defaults</span>
             </button>
           </div>
 
-          {/* Big Save Button at bottom as well */}
+          {/* Big Save Button */}
           <button
             onClick={handleSave}
             className="btn-primary"
