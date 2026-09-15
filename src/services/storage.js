@@ -1,6 +1,6 @@
 import { initialCardContent } from '../defaultContent';
 
-const STORAGE_KEY = 'dad_47th_birthday_card_data_v2';
+const STORAGE_KEY = 'dad_47th_birthday_card_data_v3';
 const CLOUD_DOC_KEY = 'dad_birthday_card_content';
 
 /**
@@ -53,6 +53,9 @@ export async function loadCardContent() {
         const data = await res.json();
         if (data && data.result) {
           const parsed = typeof data.result === 'string' ? JSON.parse(data.result) : data.result;
+          if (parsed.photos && (parsed.photos.length <= 4 || parsed.photos[0]?.url?.includes('unsplash.com'))) {
+            parsed.photos = initialCardContent.photos;
+          }
           // Merge with defaultContent so missing keys never break UI
           return { ...initialCardContent, ...parsed };
         }
@@ -74,6 +77,9 @@ export async function loadCardContent() {
         const data = await res.json();
         if (data.fields && data.fields.payload && data.fields.payload.stringValue) {
           const parsed = JSON.parse(data.fields.payload.stringValue);
+          if (parsed.photos && (parsed.photos.length <= 4 || parsed.photos[0]?.url?.includes('unsplash.com'))) {
+            parsed.photos = initialCardContent.photos;
+          }
           return { ...initialCardContent, ...parsed };
         }
       }
@@ -84,9 +90,12 @@ export async function loadCardContent() {
 
   // 3. Try LocalStorage
   try {
-    const local = localStorage.getItem(STORAGE_KEY);
+    const local = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('dad_47th_birthday_card_data_v2');
     if (local) {
       const parsed = JSON.parse(local);
+      if (parsed.photos && (parsed.photos.length <= 4 || parsed.photos[0]?.url?.includes('unsplash.com'))) {
+        parsed.photos = initialCardContent.photos;
+      }
       return { ...initialCardContent, ...parsed };
     }
   } catch (err) {

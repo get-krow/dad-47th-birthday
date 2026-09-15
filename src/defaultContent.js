@@ -158,27 +158,123 @@ export const initialCardContent = {
   photos: [
     {
       id: "photo-1",
-      url: "https://images.unsplash.com/photo-1542037104857-ffbb0b9155fb?auto=format&fit=crop&w=1200&q=80",
-      caption: "Through all the years and memories, you've always been right there.",
-      alt: "Father and child sunset moment"
+      url: "/photos/dad 1.PNG",
+      caption: "Back when I was tiny enough to fit under your arm. You've been my go-to guy since day one.",
+      alt: "Zachary as a toddler smiling with Dad at restaurant booth"
     },
     {
       id: "photo-2",
-      url: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&w=1200&q=80",
-      caption: "Seven years of morning school rides — countless miles and unforgettable conversations.",
-      alt: "Morning drive together on the open road"
+      url: "/photos/dad 2.jpeg",
+      caption: "That legendary Star Wars shirt had to make an appearance. Peak Dad style.",
+      alt: "Dad wearing Empire Strikes Back Star Wars shirt with Mommy, Zachary, and Nat"
     },
     {
       id: "photo-3",
-      url: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80",
-      caption: "Always tinkering with gadgets, tech, and whatever needs optimizing.",
-      alt: "Modern technology and gadgets"
+      url: "/photos/dad 3.jpeg",
+      caption: "Frozen Fun photo op. No complaints from Dad, just locked in for the family shot.",
+      alt: "Family posing inside Frozen Fun picture frame"
     },
     {
       id: "photo-4",
-      url: "https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&w=1200&q=80",
-      caption: "The open road spirit — that motorcycle dream is waiting for you!",
-      alt: "Classic motorcycle on the highway"
+      url: "/photos/dad 4.jpg",
+      caption: "Sherpa Dad on full duty. Strapped in and ready to carry us through anything.",
+      alt: "Dad strapping in the big hiking backpack carrier with Ellie smiling on his back"
+    },
+    {
+      id: "photo-5",
+      url: "/photos/dad 5.JPG",
+      caption: "High ropes course squad! Always encouraging us to tackle heights and challenge ourselves.",
+      alt: "Dad, Zachary, and Nat harnessed up at the ropes course"
+    },
+    {
+      id: "photo-6",
+      url: "/photos/dad 6.jpg",
+      caption: "Princess Ellie's 5th birthday. Pure chaos, laughs, and nobody taking themselves too seriously.",
+      alt: "Family celebration for Ellie's 5th birthday around the cake"
+    },
+    {
+      id: "photo-7",
+      url: "/photos/dad 7.jpg",
+      caption: "Kitchen table celebrations. The best moments are honestly just all of us crowded around good food.",
+      alt: "Family around the kitchen table with fruit tart and cake"
+    },
+    {
+      id: "photo-8",
+      url: "/photos/dad 8.jpg",
+      caption: "Freezing winter walk under the holiday lights. Bundled up and laughing through the cold.",
+      alt: "Night walk in the snow with lit up trees and warm drinks"
+    },
+    {
+      id: "photo-9",
+      url: "/photos/dad 9.jpg",
+      caption: "In-N-Out run! Animal style fries, milkshakes, and unmatched booth excitement.",
+      alt: "Family enjoying In-N-Out burgers and animal style fries"
+    },
+    {
+      id: "photo-10",
+      url: "/photos/dad 10.jpg",
+      caption: "Trail runs and hikes through the woods. You never run out of breath while I'm fighting for my life.",
+      alt: "Dad and Zachary hiking together on a trail in the forest"
+    },
+    {
+      id: "photo-11",
+      url: "/photos/dad 11.jpg",
+      caption: "Cloudy skies and big smiles. Ellie stealing the spotlight with the peace signs as usual.",
+      alt: "Family outdoor selfie looking up at the sky"
+    },
+    {
+      id: "photo-12",
+      url: "/photos/dad 12.jpg",
+      caption: "Dinner table debates, pirate treasure coins, and good times together.",
+      alt: "Dad, Ellie with her gold coin, and Zachary at restaurant dinner"
+    },
+    {
+      id: "photo-13",
+      url: "/photos/dad 13.jpg",
+      caption: "Cruise ship backdrop! One of those trips we'll still be talking about decades from now.",
+      alt: "Family selfie in front of the Norwegian cruise ship"
+    },
+    {
+      id: "photo-14",
+      url: "/photos/dad 14.jpg",
+      caption: "Exploring historic cobblestone streets in Europe. World travelers led by Dad.",
+      alt: "Family in historic European town square"
+    },
+    {
+      id: "photo-15",
+      url: "/photos/dad 15.jpg",
+      caption: "Mommy and Daddy. The real dynamic duo holding everything down for our whole family.",
+      alt: "Portrait of Dad and Mommy together in the garden sunshine"
+    },
+    {
+      id: "photo-16",
+      url: "/photos/dad 16.jpg",
+      caption: "Gardens by the Bay under the Supertrees. Nat could never resist sneaking bunny ears onto my head.",
+      alt: "Family at Singapore Gardens by the Bay under the Supertrees"
+    },
+    {
+      id: "photo-17",
+      url: "/photos/dad 17.jpg",
+      caption: "Staircase family photo in cozy sweaters. Home is wherever all of us are.",
+      alt: "Family sitting together on the stairs in warm sweaters"
+    },
+    {
+      id: "photo-18",
+      url: "/photos/dad 18.jpg",
+      caption: "Out for Japanese food. Getting older and growing up, but the laughs stay the exact same.",
+      alt: "Zachary, Mommy, and Dad at Japanese restaurant table"
+    },
+    {
+      id: "photo-19",
+      url: "/photos/dad 19.jpg",
+      caption: "Cheering on Nat at the Canadian Championships in Calgary! Always showing up for each other.",
+      alt: "Family at gymnastics championship supporting Nat"
+    },
+    {
+      id: "photo-20",
+      url: "/photos/dad 20.jpg",
+      caption: "Ready for launch! Front row ride buddy since day one.",
+      alt: "Zachary, Nat, and Dad seated on theme park ride"
     }
   ],
   miniInteractions: {

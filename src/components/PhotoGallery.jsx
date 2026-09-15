@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Image as ImageIcon, Maximize2, X } from 'lucide-react';
 import { playClick } from '../services/soundEffects';
 
@@ -8,6 +8,17 @@ export default function PhotoGallery({ content }) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
+  const thumbRefs = useRef([]);
+
+  useEffect(() => {
+    if (thumbRefs.current[currentIndex]) {
+      thumbRefs.current[currentIndex].scrollIntoView({
+        behavior: 'smooth',
+        inline: 'center',
+        block: 'nearest'
+      });
+    }
+  }, [currentIndex]);
 
   if (!photos.length) return null;
 
@@ -205,34 +216,37 @@ export default function PhotoGallery({ content }) {
             {/* Thumbnail Navigation Row */}
             <div style={{
               display: 'flex',
-              justifyContent: 'center',
+              justifyContent: photos.length > 6 ? 'flex-start' : 'center',
               alignItems: 'center',
               gap: '0.6rem',
               overflowX: 'auto',
-              padding: '0.4rem 0.2rem 1rem 0.2rem',
-              scrollbarWidth: 'none'
+              padding: '0.5rem 0.5rem 0.8rem 0.5rem',
+              scrollbarWidth: 'none',
+              WebkitOverflowScrolling: 'touch'
             }}>
               {photos.map((p, idx) => (
                 <button
                   key={p.id || idx}
+                  ref={(el) => (thumbRefs.current[idx] = el)}
                   onClick={() => {
                     playClick();
                     setCurrentIndex(idx);
                   }}
                   title={`View photo ${idx + 1}`}
                   style={{
-                    width: '56px',
-                    height: '42px',
-                    borderRadius: '6px',
+                    width: '60px',
+                    height: '44px',
+                    borderRadius: '8px',
                     overflow: 'hidden',
-                    border: idx === currentIndex ? '2px solid var(--accent-gold)' : '1px solid rgba(255, 255, 255, 0.2)',
-                    opacity: idx === currentIndex ? 1 : 0.55,
+                    border: idx === currentIndex ? '2.5px solid var(--accent-gold)' : '1px solid rgba(255, 255, 255, 0.2)',
+                    opacity: idx === currentIndex ? 1 : 0.5,
                     cursor: 'pointer',
                     padding: 0,
                     backgroundColor: '#000000',
                     flexShrink: 0,
                     transition: 'all 0.2s ease',
-                    transform: idx === currentIndex ? 'scale(1.08)' : 'scale(1)'
+                    transform: idx === currentIndex ? 'scale(1.08)' : 'scale(1)',
+                    boxShadow: idx === currentIndex ? '0 0 12px rgba(245, 158, 11, 0.5)' : 'none'
                   }}
                 >
                   <img 
@@ -248,7 +262,15 @@ export default function PhotoGallery({ content }) {
             </div>
 
             {/* Dots */}
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'center', 
+              alignItems: 'center', 
+              gap: '0.35rem',
+              flexWrap: 'wrap',
+              maxWidth: '380px',
+              margin: '0 auto'
+            }}>
               {photos.map((_, idx) => (
                 <button
                   key={idx}
@@ -258,12 +280,14 @@ export default function PhotoGallery({ content }) {
                   }}
                   aria-label={`Go to photo ${idx + 1}`}
                   style={{
-                    width: idx === currentIndex ? '24px' : '8px',
-                    height: '8px',
+                    width: idx === currentIndex ? '22px' : '6px',
+                    height: '6px',
                     borderRadius: '9999px',
                     backgroundColor: idx === currentIndex ? 'var(--accent-gold)' : 'rgba(255, 255, 255, 0.2)',
                     transition: 'all 0.25s ease',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    border: 'none',
+                    padding: 0
                   }}
                 />
               ))}
