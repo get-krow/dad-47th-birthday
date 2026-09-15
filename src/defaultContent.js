@@ -13,8 +13,8 @@ export const initialCardContent = {
   },
   letter: {
     badge: "A Letter From The Heart ✉️",
-    title: "HAPPY 47TH BIRTHDAY!",
-    subtitle: "From your \"100%\" Dogwood student.",
+    title: "Happy 47th Birthday, Daddy ❤️",
+    subtitle: "To the best dad in the galaxy.",
     salutation: "Dear Daddy,",
     paragraphs: [
       "HAPPY 47TH BIRTHDAY!",
@@ -159,32 +159,26 @@ export const initialCardContent = {
     {
       id: "photo-1",
       url: "https://images.unsplash.com/photo-1542037104857-ffbb0b9155fb?auto=format&fit=crop&w=1200&q=80",
-      caption: "17 years of memories, guidance, and being there for us every single day.",
-      alt: "Father and child moment"
+      caption: "Through all the years and memories, you've always been right there.",
+      alt: "Father and child sunset moment"
     },
     {
       id: "photo-2",
-      url: "https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&w=1200&q=80",
-      caption: "Open road dreams — Happy 47th Birthday Daddy, and I hope you get that motorcycle! 🏍️",
-      alt: "Classic highway cruiser motorcycle"
+      url: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&w=1200&q=80",
+      caption: "Seven years of morning school rides — countless miles and unforgettable conversations.",
+      alt: "Morning drive together on the open road"
     },
     {
       id: "photo-3",
-      url: "https://images.unsplash.com/photo-1580748141549-71748dbe0bdc?auto=format&fit=crop&w=1200&q=80",
-      caption: "17 years of driving me to hockey rinks and school early in the morning.",
-      alt: "Ice hockey action and puck"
+      url: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80",
+      caption: "Always tinkering with gadgets, tech, and whatever needs optimizing.",
+      alt: "Modern technology and gadgets"
     },
     {
       id: "photo-4",
-      url: "https://images.unsplash.com/photo-1608889825205-eebdb9fc5806?auto=format&fit=crop&w=1200&q=80",
-      caption: "May the 47th be with you! The Force is always strong with you. ⚔️",
-      alt: "Star Wars tribute"
-    },
-    {
-      id: "photo-5",
-      url: "https://images.unsplash.com/photo-1558857563-b371f31ca704?auto=format&fit=crop&w=1200&q=80",
-      caption: "Most importantly of all... who would bring us to get BUBBLE TEA? :) 🧋",
-      alt: "Refreshing iced bubble tea"
+      url: "https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&w=1200&q=80",
+      caption: "The open road spirit — that motorcycle dream is waiting for you!",
+      alt: "Classic motorcycle on the highway"
     }
   ],
   miniInteractions: {
@@ -211,8 +205,8 @@ export const initialCardContent = {
     badge: "Final Whistle & Warmest Wishes 💖",
     title: "HAPPY BIRTHDAY, DADDY ❤️",
     subtitle: "You're not just 47 — you're 47 years of excellence.",
-    finalMessage: "Thank you for the sacrifices, the early mornings, the laughs, the guidance, and for constantly showing up for me. No matter how much older we both get, I will always be thankful to have you in my corner.",
-    signOff: "With all my love and respect,",
-    signature: "Your Kid ❤️"
+    finalMessage: "Happy 47th Birthday Daddy, and I hope you get that motorcycle :)",
+    signOff: "Love, your \"100%\" Dogwood student,",
+    signature: "Zachary Tan"
   }
 };

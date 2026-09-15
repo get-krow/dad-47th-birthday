@@ -1,6 +1,6 @@
 import React from 'react';
 import OpeningCard from '../components/OpeningCard';
-import PhotoWall from '../components/PhotoWall';
+import BigCardLetter from '../components/BigCardLetter';
 import PhotoGallery from '../components/PhotoGallery';
 import ClosingSection from '../components/ClosingSection';
 
@@ -12,13 +12,13 @@ export default function BirthdayCard({ content }) {
       <div className="bg-ambient-orb orb-2" />
       <div className="bg-ambient-orb orb-3" />
 
-      {/* 1. Interactive Opening Digital Card with Balloon Shower */}
+      {/* 1. Interactive Opening Digital Card */}
       <OpeningCard content={content} />
 
-      {/* 2. Photo Wall & Collage (Images Everywhere!) */}
-      <PhotoWall content={content} />
+      {/* 2. Really Big Textbox / Card Letter */}
+      <BigCardLetter content={content} />
 
-      {/* 3. Photo Slideshow Carousel */}
+      {/* 3. Photo Slideshow */}
       <PhotoGallery content={content} />
 
       {/* 4. Grand Finale with Send Love Button */}

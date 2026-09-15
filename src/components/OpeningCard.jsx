@@ -3,37 +3,13 @@ import { Sparkles, Heart, ChevronDown, Gift, RefreshCw } from 'lucide-react';
 import { fireGrandConfetti } from '../services/confetti';
 import { playChime, playClick } from '../services/soundEffects';
 
-const BALLOON_COLORS = [
-  '#ef4444', '#f97316', '#f59e0b', '#10b981', '#06b6d4',
-  '#3b82f6', '#8b5cf6', '#ec4899', '#fbbf24', '#34d399', '#f43f5e'
-];
-
 export default function OpeningCard({ content, onCardOpen }) {
   const [isOpen, setIsOpen] = useState(false);
   const [openCount, setOpenCount] = useState(0);
-  const [balloons, setBalloons] = useState([]);
-
-  const spawnBalloons = () => {
-    const newBalloons = Array.from({ length: 42 }).map((_, i) => ({
-      id: `balloon-${Date.now()}-${i}`,
-      left: `${Math.random() * 90 + 5}%`,
-      color: BALLOON_COLORS[Math.floor(Math.random() * BALLOON_COLORS.length)],
-      duration: `${3.6 + Math.random() * 2.8}s`,
-      delay: `${Math.random() * 1.5}s`,
-      width: Math.round(44 + Math.random() * 24)
-    }));
-    setBalloons(newBalloons);
-
-    // Automatically remove all balloons after they float away so DOM remains clean
-    setTimeout(() => {
-      setBalloons([]);
-    }, 7200);
-  };
 
   const handleOpen = () => {
     playChime();
     fireGrandConfetti();
-    spawnBalloons();
     setIsOpen(true);
     setOpenCount(prev => prev + 1);
     if (onCardOpen) onCardOpen();
@@ -42,7 +18,6 @@ export default function OpeningCard({ content, onCardOpen }) {
   const handleReplay = (e) => {
     e.stopPropagation();
     fireGrandConfetti();
-    spawnBalloons();
   };
 
   const opening = content?.opening || {};
@@ -56,37 +31,15 @@ export default function OpeningCard({ content, onCardOpen }) {
       flexDirection: 'column',
       justifyContent: 'center',
       alignItems: 'center',
-      padding: '2.5rem 1rem 1.5rem 1rem',
+      padding: '2.5rem 1rem',
       position: 'relative',
       zIndex: 10
     }}>
-      {/* Dynamic Floating Balloons Shower */}
-      {balloons.length > 0 && (
-        <div className="balloons-container">
-          {balloons.map((b) => (
-            <div
-              key={b.id}
-              className="balloon"
-              style={{
-                left: b.left,
-                backgroundColor: b.color,
-                width: `${b.width}px`,
-                height: `${Math.round(b.width * 1.3)}px`,
-                animationDuration: b.duration,
-                animationDelay: b.delay
-              }}
-            >
-              <div className="shine" />
-            </div>
-          ))}
-        </div>
-      )}
-
       {/* Decorative Floating Sparkles */}
       <div style={{
         position: 'absolute',
         top: '15%',
-        right: '12%',
+        right: '15%',
         opacity: 0.7,
         animation: 'floatGentle 4s ease-in-out infinite',
         pointerEvents: 'none'
@@ -95,8 +48,8 @@ export default function OpeningCard({ content, onCardOpen }) {
       </div>
       <div style={{
         position: 'absolute',
-        bottom: '25%',
-        left: '10%',
+        bottom: '20%',
+        left: '12%',
         opacity: 0.6,
         animation: 'floatGentle 3.5s ease-in-out infinite 1s',
         pointerEvents: 'none'
@@ -188,7 +141,7 @@ export default function OpeningCard({ content, onCardOpen }) {
                 <span>{opening.buttonText || "OPEN YOUR CARD 🎁"}</span>
               </button>
               <div style={{ fontSize: '0.82rem', color: 'var(--text-subtle)', marginTop: '0.75rem' }}>
-                Tap to unwrap with celebratory balloons, sound & confetti!
+                Tap to unwrap with sound & confetti
               </div>
             </div>
           ) : (
@@ -211,7 +164,7 @@ export default function OpeningCard({ content, onCardOpen }) {
                 fontWeight: 700,
                 marginBottom: '1.2rem'
               }}>
-                <span>🎉 Card Opened! Scroll down for your memories</span>
+                <span>🎉 Card Opened! Scroll down for your journey</span>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
@@ -221,15 +174,15 @@ export default function OpeningCard({ content, onCardOpen }) {
                   style={{ fontSize: '0.9rem', padding: '0.65rem 1.25rem' }}
                 >
                   <RefreshCw size={16} />
-                  <span>More Confetti & Balloons! ({openCount})</span>
+                  <span>More Confetti! ({openCount})</span>
                 </button>
 
                 <a 
-                  href="#photo-wall"
+                  href="#the-card"
                   className="btn-primary"
                   style={{ fontSize: '0.9rem', padding: '0.65rem 1.4rem' }}
                 >
-                  <span>Explore Memories</span>
+                  <span>Read Your Card</span>
                   <ChevronDown size={18} />
                 </a>
               </div>
@@ -238,60 +191,9 @@ export default function OpeningCard({ content, onCardOpen }) {
         </div>
       </div>
 
-      {/* Fun Themed Sticker Badges (Star Wars, Motorcycle, Hockey) */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        gap: '0.85rem',
-        marginTop: '2.2rem',
-        maxWidth: '850px',
-        padding: '0 0.5rem'
-      }}>
-        {/* Star Wars Sticker */}
-        <div className="sticker-badge" style={{ transform: 'rotate(-2deg)' }}>
-          <img 
-            src="https://images.unsplash.com/photo-1608889825205-eebdb9fc5806?auto=format&fit=crop&w=120&q=80" 
-            alt="Star Wars"
-            className="sticker-img"
-          />
-          <div>
-            <div style={{ fontSize: '0.84rem', fontWeight: 800, color: '#60a5fa' }}>Star Wars Master</div>
-            <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>May the 47th be with you ⚔️</div>
-          </div>
-        </div>
-
-        {/* Motorcycle Sticker */}
-        <div className="sticker-badge" style={{ transform: 'rotate(2deg)' }}>
-          <img 
-            src="https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&w=120&q=80" 
-            alt="Motorcycle"
-            className="sticker-img"
-          />
-          <div>
-            <div style={{ fontSize: '0.84rem', fontWeight: 800, color: '#fbbf24' }}>Open Road Spirit</div>
-            <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>Someday soon on 2 wheels 🏍️</div>
-          </div>
-        </div>
-
-        {/* Hockey Sticker */}
-        <div className="sticker-badge" style={{ transform: 'rotate(-1.5deg)' }}>
-          <img 
-            src="https://images.unsplash.com/photo-1580748141549-71748dbe0bdc?auto=format&fit=crop&w=120&q=80" 
-            alt="Hockey"
-            className="sticker-img"
-          />
-          <div>
-            <div style={{ fontSize: '0.84rem', fontWeight: 800, color: '#38bdf8' }}>Hockey Drop-Off Legend</div>
-            <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>Top shelf where grandma keeps it 🏒</div>
-          </div>
-        </div>
-      </div>
-
       {/* Downward Scroll Indicator */}
       <div style={{
-        marginTop: '2rem',
+        marginTop: '2.5rem',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -300,7 +202,7 @@ export default function OpeningCard({ content, onCardOpen }) {
         transition: 'opacity 0.3s ease'
       }}>
         <span style={{ fontSize: '0.78rem', letterSpacing: '0.06em', color: 'var(--text-subtle)', textTransform: 'uppercase' }}>
-          Read Your Birthday Letter Below
+          Explore Your Card Below
         </span>
         <ChevronDown size={20} color="var(--accent-gold)" style={{ animation: 'floatGentle 2s ease-in-out infinite' }} />
       </div>
