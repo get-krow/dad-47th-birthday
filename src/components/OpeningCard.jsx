@@ -211,7 +211,7 @@ export default function OpeningCard({ content, onCardOpen }) {
                 fontWeight: 700,
                 marginBottom: '1.2rem'
               }}>
-                <span>🎉 Card Opened! Scroll down for your letter</span>
+                <span>🎉 Card Opened! Scroll down for your memories</span>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
@@ -225,11 +225,11 @@ export default function OpeningCard({ content, onCardOpen }) {
                 </button>
 
                 <a 
-                  href="#the-card"
+                  href="#photo-wall"
                   className="btn-primary"
                   style={{ fontSize: '0.9rem', padding: '0.65rem 1.4rem' }}
                 >
-                  <span>Read Your Card</span>
+                  <span>Explore Memories</span>
                   <ChevronDown size={18} />
                 </a>
               </div>

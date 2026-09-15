@@ -11,10 +11,9 @@ import {
   MoveDown, 
   CheckCircle2, 
   Sparkles,
-  Heart,
   Image as ImageIcon,
   Camera,
-  FileText
+  Layers
 } from 'lucide-react';
 import { 
   saveCardContent, 
@@ -49,7 +48,7 @@ function compressImageFile(file) {
         canvas.height = height;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
         resolve(dataUrl);
       };
       img.onerror = () => reject(new Error('Failed to load image file'));
@@ -62,10 +61,11 @@ function compressImageFile(file) {
 
 export default function CardEditor({ content, onSave, onNavigateCard }) {
   const [formData, setFormData] = useState(() => JSON.parse(JSON.stringify(content)));
-  const [activeTab, setActiveTab] = useState('letter'); // 'letter' | 'photos' | 'opening'
+  const [activeTab, setActiveTab] = useState('photos'); // 'photos' | 'opening'
   const [savedStatus, setSavedStatus] = useState(null); // null | 'saving' | 'saved' | 'error'
   const [saveMessage, setSaveMessage] = useState('');
-  const fileInputRef = useRef(null);
+  const [uploadingCount, setUploadingCount] = useState(0);
+  const multiFileInputRef = useRef(null);
   const storageInfo = getStorageMode();
 
   useEffect(() => {
@@ -114,7 +114,7 @@ export default function CardEditor({ content, onSave, onNavigateCard }) {
   };
 
   const handleReset = () => {
-    if (window.confirm("Are you sure you want to reset all content back to the original heartfelt defaults?")) {
+    if (window.confirm("Reset all photos and settings back to the initial defaults?")) {
       playClick();
       const def = resetCardContent();
       setFormData(JSON.parse(JSON.stringify(def)));
@@ -150,42 +150,50 @@ export default function CardEditor({ content, onSave, onNavigateCard }) {
   };
 
   // -------------------------------------------------------------
-  // Photo Handlers (With Instant Auto-Sync to Card!)
+  // Multi-Photo Batch Upload Handler
   // -------------------------------------------------------------
+  const handleMultiPhotoUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+    playClick();
+    setSavedStatus('saving');
+    setUploadingCount(files.length);
+
+    try {
+      const compressedPhotos = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const base64 = await compressImageFile(file);
+        compressedPhotos.push({
+          id: `photo-${Date.now()}-${i}`,
+          url: base64,
+          caption: file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ')
+        });
+      }
+
+      const updatedPhotos = [...(formData.photos || []), ...compressedPhotos];
+      const updated = { ...formData, photos: updatedPhotos };
+      updateAndAutoSave(updated, `✓ Added ${files.length} new photo${files.length > 1 ? 's' : ''}!`);
+    } catch (err) {
+      alert('Error uploading photos: ' + err.message);
+      setSavedStatus(null);
+    } finally {
+      setUploadingCount(0);
+      if (multiFileInputRef.current) multiFileInputRef.current.value = '';
+    }
+  };
+
   const handleAddBlankPhoto = () => {
     playClick();
     const newPhoto = {
       id: 'photo-' + Date.now(),
       url: 'https://images.unsplash.com/photo-1511895426328-dc8714191300?auto=format&fit=crop&w=1200&q=80',
-      caption: 'New unforgettable memory with Dad ❤️'
+      caption: 'Family moment with Dad ❤️'
     };
     const updatedPhotos = [...(formData.photos || []), newPhoto];
     const updated = { ...formData, photos: updatedPhotos };
     updateAndAutoSave(updated, '✓ New photo added and saved to card!');
-  };
-
-  // Quick Direct File Upload for New Photo
-  const handleDirectNewPhotoUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    try {
-      playClick();
-      setSavedStatus('saving');
-      const base64 = await compressImageFile(file);
-      const newPhoto = {
-        id: 'photo-' + Date.now(),
-        url: base64,
-        caption: 'Special moment with Dad ❤️'
-      };
-      const updatedPhotos = [...(formData.photos || []), newPhoto];
-      const updated = { ...formData, photos: updatedPhotos };
-      updateAndAutoSave(updated, '✓ Photo uploaded and added to card!');
-    } catch (err) {
-      alert('Error processing image: ' + err.message);
-      setSavedStatus(null);
-    } finally {
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
   };
 
   const handlePhotoUploadForIndex = async (index, e) => {
@@ -198,7 +206,7 @@ export default function CardEditor({ content, onSave, onNavigateCard }) {
       const updatedPhotos = [...(formData.photos || [])];
       updatedPhotos[index] = { ...updatedPhotos[index], url: base64 };
       const updated = { ...formData, photos: updatedPhotos };
-      updateAndAutoSave(updated, '✓ Photo updated and saved!');
+      updateAndAutoSave(updated, '✓ Photo replaced and saved!');
     } catch (err) {
       alert('Error uploading photo: ' + err.message);
       setSavedStatus(null);
@@ -207,7 +215,7 @@ export default function CardEditor({ content, onSave, onNavigateCard }) {
 
   const handleDeletePhoto = (index) => {
     if (formData.photos.length <= 1) {
-      alert("Please keep at least 1 photo in your slideshow!");
+      alert("Please keep at least 1 photo!");
       return;
     }
     playClick();
@@ -244,55 +252,9 @@ export default function CardEditor({ content, onSave, onNavigateCard }) {
     onSave(updated);
   };
 
-  // -------------------------------------------------------------
-  // Letter Handlers
-  // -------------------------------------------------------------
-  const letterParagraphs = formData.letter?.paragraphs || [];
-  
-  const handleParagraphChange = (index, text) => {
-    const updatedParas = [...letterParagraphs];
-    updatedParas[index] = text;
-    const updated = {
-      ...formData,
-      letter: {
-        ...(formData.letter || {}),
-        paragraphs: updatedParas
-      }
-    };
-    setFormData(updated);
-    onSave(updated);
-  };
-
-  const handleAddParagraph = () => {
-    playClick();
-    const updatedParas = [...letterParagraphs, "Add your new thought here..."];
-    const updated = {
-      ...formData,
-      letter: {
-        ...(formData.letter || {}),
-        paragraphs: updatedParas
-      }
-    };
-    updateAndAutoSave(updated, '✓ Paragraph added!');
-  };
-
-  const handleDeleteParagraph = (index) => {
-    playClick();
-    const updatedParas = letterParagraphs.filter((_, i) => i !== index);
-    const updated = {
-      ...formData,
-      letter: {
-        ...(formData.letter || {}),
-        paragraphs: updatedParas
-      }
-    };
-    updateAndAutoSave(updated, '✓ Paragraph removed!');
-  };
-
   const tabs = [
-    { id: 'letter', label: '1. The Card Letter (Big Textbox)', icon: FileText },
-    { id: 'photos', label: `2. Photo Slideshow (${formData.photos?.length || 0})`, icon: ImageIcon },
-    { id: 'opening', label: '3. Opening Card Details', icon: Sparkles }
+    { id: 'photos', label: `📸 Photos & Images (${formData.photos?.length || 0})`, icon: ImageIcon },
+    { id: 'opening', label: '✨ Opening Card Settings', icon: Sparkles }
   ];
 
   return (
@@ -312,7 +274,7 @@ export default function CardEditor({ content, onSave, onNavigateCard }) {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.3rem' }}>
               <h1 style={{ fontSize: 'clamp(1.6rem, 4vw, 2.4rem)', fontWeight: 800 }}>
-                Card Editor
+                Photo & Card Editor
               </h1>
               <span style={{
                 fontSize: '0.78rem',
@@ -327,7 +289,7 @@ export default function CardEditor({ content, onSave, onNavigateCard }) {
               </span>
             </div>
             <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-              Write your letter, add photos, and customize your dad's card. Everything auto-syncs to the live card!
+              Upload your photos, reorder them, and customize captions. Everything auto-syncs live to the card!
             </p>
           </div>
 
@@ -406,7 +368,7 @@ export default function CardEditor({ content, onSave, onNavigateCard }) {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.5rem',
-                  padding: '0.7rem 1.25rem',
+                  padding: '0.7rem 1.3rem',
                   borderRadius: '9999px',
                   fontSize: '0.92rem',
                   fontWeight: 700,
@@ -425,147 +387,35 @@ export default function CardEditor({ content, onSave, onNavigateCard }) {
           })}
         </div>
 
-        {/* TAB 1: The Big Card Letter */}
-        {activeTab === 'letter' && (
-          <div className="glass-card" style={{ padding: 'clamp(1.5rem, 4vw, 2.5rem)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.8rem' }}>
-              <div>
-                <h2 style={{ fontSize: '1.45rem', fontWeight: 800 }}>
-                  The Card Letter (Big Textbox)
-                </h2>
-                <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>
-                  This is the main letter displayed on the card. Write freely and heartfelt.
-                </p>
-              </div>
-
-              <button
-                onClick={handleAddParagraph}
-                className="btn-secondary"
-                style={{ fontSize: '0.86rem' }}
-              >
-                <Plus size={15} />
-                <span>Add Paragraph</span>
-              </button>
-            </div>
-
-            {/* Salutation */}
-            <div className="form-group">
-              <label className="form-label">Salutation (Opening Greeting)</label>
-              <input 
-                type="text" 
-                className="form-input"
-                value={formData.letter?.salutation || `Dear ${formData.dadName || 'Daddy'},`}
-                onChange={(e) => {
-                  const updated = {
-                    ...formData,
-                    letter: { ...(formData.letter || {}), salutation: e.target.value }
-                  };
-                  setFormData(updated);
-                  onSave(updated);
-                }}
-              />
-            </div>
-
-            {/* Paragraph Textboxes */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.4rem', marginTop: '1rem' }}>
-              {letterParagraphs.map((p, idx) => (
-                <div key={idx} style={{
-                  padding: '1.2rem',
-                  backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                  borderRadius: 'var(--radius-md)',
-                  border: '1px solid rgba(255, 255, 255, 0.08)'
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--accent-gold)' }}>
-                      Paragraph {idx + 1}
-                    </span>
-                    {letterParagraphs.length > 1 && (
-                      <button
-                        onClick={() => handleDeleteParagraph(idx)}
-                        title="Delete paragraph"
-                        style={{ color: '#f43f5e', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    )}
-                  </div>
-                  <textarea 
-                    className="form-textarea"
-                    style={{ minHeight: '110px', fontSize: '1rem', lineHeight: '1.7' }}
-                    value={p}
-                    onChange={(e) => handleParagraphChange(idx, e.target.value)}
-                  />
-                </div>
-              ))}
-            </div>
-
-            {/* Sign-Off & Signature */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.2rem', marginTop: '1.8rem' }}>
-              <div className="form-group">
-                <label className="form-label">Sign-Off</label>
-                <input 
-                  type="text" 
-                  className="form-input"
-                  value={formData.letter?.signOff || 'With all my love and respect,'}
-                  onChange={(e) => {
-                    const updated = {
-                      ...formData,
-                      letter: { ...(formData.letter || {}), signOff: e.target.value }
-                    };
-                    setFormData(updated);
-                    onSave(updated);
-                  }}
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Signature</label>
-                <input 
-                  type="text" 
-                  className="form-input"
-                  value={formData.letter?.signature || 'Your Kid ❤️'}
-                  onChange={(e) => {
-                    const updated = {
-                      ...formData,
-                      letter: { ...(formData.letter || {}), signature: e.target.value }
-                    };
-                    setFormData(updated);
-                    onSave(updated);
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 2: Photo Slideshow Manager */}
+        {/* TAB 1: Photo Slideshow & Wall Manager */}
         {activeTab === 'photos' && (
           <div className="glass-card" style={{ padding: 'clamp(1.5rem, 4vw, 2.5rem)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.8rem' }}>
               <div>
                 <h2 style={{ fontSize: '1.45rem', fontWeight: 800 }}>
-                  Photo Slideshow ({formData.photos?.length || 0} Photos)
+                  Photo Showcase Manager ({formData.photos?.length || 0} Photos)
                 </h2>
                 <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>
-                  Upload photos from your computer/phone or enter image links. Every photo added here immediately appears in the card!
+                  Upload photos from your computer or phone. Select multiple photos at once to add them in one go!
                 </p>
               </div>
 
               {/* Add & Upload Buttons */}
               <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
-                {/* Direct Upload New Photo */}
+                {/* Upload Photos Button */}
                 <label 
                   className="btn-primary"
-                  style={{ fontSize: '0.9rem', padding: '0.6rem 1.2rem', cursor: 'pointer' }}
+                  style={{ fontSize: '0.92rem', padding: '0.65rem 1.3rem', cursor: 'pointer' }}
                 >
                   <Camera size={17} />
-                  <span>Upload Photo</span>
+                  <span>{uploadingCount > 0 ? `Uploading (${uploadingCount})...` : 'Upload Photos (Select Multiple)'}</span>
                   <input 
-                    ref={fileInputRef}
+                    ref={multiFileInputRef}
                     type="file" 
                     accept="image/*" 
+                    multiple
                     style={{ display: 'none' }}
-                    onChange={handleDirectNewPhotoUpload}
+                    onChange={handleMultiPhotoUpload}
                   />
                 </label>
 
@@ -573,10 +423,10 @@ export default function CardEditor({ content, onSave, onNavigateCard }) {
                 <button
                   onClick={handleAddBlankPhoto}
                   className="btn-secondary"
-                  style={{ fontSize: '0.9rem', padding: '0.6rem 1.2rem' }}
+                  style={{ fontSize: '0.92rem', padding: '0.65rem 1.2rem' }}
                 >
                   <Plus size={17} />
-                  <span>Add Photo by URL</span>
+                  <span>Add by URL</span>
                 </button>
               </div>
             </div>
@@ -637,7 +487,7 @@ export default function CardEditor({ content, onSave, onNavigateCard }) {
                         <input 
                           type="text" 
                           className="form-input"
-                          value={photo.url.startsWith('data:image') ? '[Uploaded Image File]' : photo.url}
+                          value={photo.url.startsWith('data:image') ? '[Uploaded Photo]' : photo.url}
                           placeholder="https://..."
                           onChange={(e) => handlePhotoUrlChange(idx, e.target.value)}
                         />
@@ -660,11 +510,12 @@ export default function CardEditor({ content, onSave, onNavigateCard }) {
                     </div>
 
                     <div className="form-group" style={{ marginBottom: 0 }}>
-                      <label className="form-label" style={{ fontSize: '0.8rem' }}>Photo Caption</label>
+                      <label className="form-label" style={{ fontSize: '0.8rem' }}>Photo Caption / Label (Optional)</label>
                       <input 
                         type="text" 
                         className="form-input"
                         value={photo.caption || ''}
+                        placeholder="e.g. Birthday memory with Dad ❤️"
                         onChange={(e) => handlePhotoCaptionChange(idx, e.target.value)}
                       />
                     </div>
@@ -675,7 +526,7 @@ export default function CardEditor({ content, onSave, onNavigateCard }) {
                     <button
                       onClick={() => handleMovePhoto(idx, -1)}
                       disabled={idx === 0}
-                      title="Move earlier in slideshow"
+                      title="Move earlier"
                       className="btn-secondary"
                       style={{ padding: '6px', borderRadius: '6px', opacity: idx === 0 ? 0.3 : 1 }}
                     >
@@ -684,7 +535,7 @@ export default function CardEditor({ content, onSave, onNavigateCard }) {
                     <button
                       onClick={() => handleMovePhoto(idx, 1)}
                       disabled={idx === formData.photos.length - 1}
-                      title="Move later in slideshow"
+                      title="Move later"
                       className="btn-secondary"
                       style={{ padding: '6px', borderRadius: '6px', opacity: idx === formData.photos.length - 1 ? 0.3 : 1 }}
                     >
@@ -705,7 +556,7 @@ export default function CardEditor({ content, onSave, onNavigateCard }) {
           </div>
         )}
 
-        {/* TAB 3: Opening Card Details */}
+        {/* TAB 2: Opening Card Details */}
         {activeTab === 'opening' && (
           <div className="glass-card" style={{ padding: 'clamp(1.5rem, 4vw, 2.5rem)' }}>
             <h2 style={{ fontSize: '1.45rem', fontWeight: 800, marginBottom: '1.5rem' }}>
