@@ -13,19 +13,19 @@ export const initialCardContent = {
   },
   letter: {
     badge: "A Letter From The Heart ✉️",
-    title: "Happy 47th Birthday, Daddy ❤️",
-    subtitle: "To the best dad in the galaxy.",
+    title: "HAPPY 47TH BIRTHDAY!",
+    subtitle: "From your \"100%\" Dogwood student.",
     salutation: "Dear Daddy,",
     paragraphs: [
-      "Happy 47th Birthday, Daddy! Yes, you are officially 47, and I wanted to put together something special just for you.",
-      "Looking back, one of the things I appreciate most is that for 7 straight years—every single morning since middle school—you were the one driving me to school. Rain, snow, freezing mornings, or sleepy Mondays, you never missed a day. Those rides weren’t just commutes; they were quiet moments, car debates, early morning music, and subtle lessons that I’ll remember for the rest of my life.",
-      "Anyone looking at us knows that we are very different people with different personalities, quirks, and interests. But somehow, we get along so well and make the absolute best team. You’ve never forced me to be a copy of you, and you always respect and support who I am.",
-      "Most of all, I have so much respect for how you raised me. Instead of simply trying to bubble-wrap and protect me from the world, you focused on preparing me for the world. You taught me how to think, how to face reality with honesty, and how to have the confidence to handle whatever comes my way.",
-      "Whether it’s debating Star Wars lore, hearing about hockey rinks, admiring fish and aquariums, dreaming about the open road on a motorcycle, tinkering with the latest tech, or your mysterious, classified 'studying' sessions—you make life so much more fun and memorable.",
-      "Thank you for everything you do and everything you’ve sacrificed for me. I love you, I appreciate you, and I’m so proud to call you my dad."
+      "HAPPY 47TH BIRTHDAY!",
+      "My big ol man. 47 years old. And 17 years of those 47 were just wiping diapers, poop digging with chopsticks, driving me to hockey and school, running with me, teaching me the most valuable life lessons, and most important of all, preparing me for what's coming in this world today.",
+      "We've always been two different people, or what we like to call it, the \"daddy\" or \"mommy\" side. Yes, we like the same things, do the same things, but in the end we act and think differently, which I think makes us, and this family, so unique. Without you, this family wouldn't be the same. Who would teach us to catch our own fish? Have our own responsibilities? Know what's going on in this world today? Who would aid us and take care of us like no other parent has in this world today? And most importantly of all...who would bring us to get BUBBLE TEA? :). My point is, this family, our lives, wouldn't be the same without you, because you make us complete, make us who we are today. Though me, Nat, and Ellie disagree with you sometimes, fight with you sometimes, it isn't because we think you're a bad dad or we don't disrespect or don't appreciate you. It's the complete opposite. We are so, so comfortable around you and mommy to have the urge to argue, disagree, and just being ourselves because you are our home, our comfort. We know that no matter what happens, you're always going to be there for us at the end of the day, and your family will be there for you too. And I hope you know that.",
+      "For the past 17 years, especially the last, I don't think anyone has ever experienced the commit, the drive, the love that you show every single day in anything you do. Studying was something that I had trouble with, and should be delt with myself. But you thought differently. You were there for me when I needed and when I was too deep in the hole. Though we sometimes had trouble cooperating with each other, we pushed through together, EVEN THOUGH you never had to, but you did it anyway. Because that is a dad that will do anything to see his children succeed and have a good life in the end, and I cannot express how much I appreciate and love you for that. That is something that I think no dad would ever go that far for, and that's what makes you so unique.",
+      "As you say, time is the most valuable thing in this world today. Time is the thing that people fear the most. But I know that I will never regret the time we spent together doing anything and everything. From talking Physics in the car (I swear I'm not annoyed, just Monday morning tiredness) and studying together, to running and telling me all your amazing army stories. The time we have together everyday is something that I will cherish forever, and will always be reminded of you when meeting an obstacle, because you always had the right advice for it no matter what. I hope that we will keep on laughing, talking Economics, and running together, because that is something I will definitely miss in the future. With you. With this family.",
+      "Happy 47th Birthday Daddy, and I hope you get that motorcycle :)"
     ],
-    signOff: "With all my love and respect,",
-    signature: "Your Kid ❤️"
+    signOff: "Love, your \"100%\" Dogwood student,",
+    signature: "Zachary Tan"
   },
   hero: {
     tag: "A Milestone Celebration",
@@ -159,26 +159,32 @@ export const initialCardContent = {
     {
       id: "photo-1",
       url: "https://images.unsplash.com/photo-1542037104857-ffbb0b9155fb?auto=format&fit=crop&w=1200&q=80",
-      caption: "Through all the years and memories, you've always been right there.",
-      alt: "Father and child sunset moment"
+      caption: "17 years of memories, guidance, and being there for us every single day.",
+      alt: "Father and child moment"
     },
     {
       id: "photo-2",
-      url: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&w=1200&q=80",
-      caption: "Seven years of morning school rides — countless miles and unforgettable conversations.",
-      alt: "Morning drive together on the open road"
+      url: "https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&w=1200&q=80",
+      caption: "Open road dreams — Happy 47th Birthday Daddy, and I hope you get that motorcycle! 🏍️",
+      alt: "Classic highway cruiser motorcycle"
     },
     {
       id: "photo-3",
-      url: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80",
-      caption: "Always tinkering with gadgets, tech, and whatever needs optimizing.",
-      alt: "Modern technology and gadgets"
+      url: "https://images.unsplash.com/photo-1580748141549-71748dbe0bdc?auto=format&fit=crop&w=1200&q=80",
+      caption: "17 years of driving me to hockey rinks and school early in the morning.",
+      alt: "Ice hockey action and puck"
     },
     {
       id: "photo-4",
-      url: "https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&w=1200&q=80",
-      caption: "The open road spirit — that motorcycle dream is waiting for you!",
-      alt: "Classic motorcycle on the highway"
+      url: "https://images.unsplash.com/photo-1608889825205-eebdb9fc5806?auto=format&fit=crop&w=1200&q=80",
+      caption: "May the 47th be with you! The Force is always strong with you. ⚔️",
+      alt: "Star Wars tribute"
+    },
+    {
+      id: "photo-5",
+      url: "https://images.unsplash.com/photo-1558857563-b371f31ca704?auto=format&fit=crop&w=1200&q=80",
+      caption: "Most importantly of all... who would bring us to get BUBBLE TEA? :) 🧋",
+      alt: "Refreshing iced bubble tea"
     }
   ],
   miniInteractions: {

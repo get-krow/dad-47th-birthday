@@ -1,6 +1,6 @@
 import { initialCardContent } from '../defaultContent';
 
-const STORAGE_KEY = 'dad_47th_birthday_card_data_v1';
+const STORAGE_KEY = 'dad_47th_birthday_card_data_v2';
 const CLOUD_DOC_KEY = 'dad_birthday_card_content';
 
 /**
