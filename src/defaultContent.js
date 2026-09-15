@@ -159,122 +159,122 @@ export const initialCardContent = {
     {
       id: "photo-1",
       url: "/photos/dad 1.PNG",
-      caption: "Back when I was tiny enough to fit under your arm. You've been my go-to guy since day one.",
-      alt: "Zachary as a toddler smiling with Dad at restaurant booth"
+      caption: "",
+      alt: "Family photo 1"
     },
     {
       id: "photo-2",
       url: "/photos/dad 2.jpeg",
-      caption: "That legendary Star Wars shirt had to make an appearance. Peak Dad style.",
-      alt: "Dad wearing Empire Strikes Back Star Wars shirt with Mommy, Zachary, and Nat"
+      caption: "",
+      alt: "Family photo 2"
     },
     {
       id: "photo-3",
       url: "/photos/dad 3.jpeg",
-      caption: "Frozen Fun photo op. No complaints from Dad, just locked in for the family shot.",
-      alt: "Family posing inside Frozen Fun picture frame"
+      caption: "",
+      alt: "Family photo 3"
     },
     {
       id: "photo-4",
       url: "/photos/dad 4.jpg",
-      caption: "Sherpa Dad on full duty. Strapped in and ready to carry us through anything.",
-      alt: "Dad strapping in the big hiking backpack carrier with Ellie smiling on his back"
+      caption: "",
+      alt: "Family photo 4"
     },
     {
       id: "photo-5",
       url: "/photos/dad 5.JPG",
-      caption: "High ropes course squad! Always encouraging us to tackle heights and challenge ourselves.",
-      alt: "Dad, Zachary, and Nat harnessed up at the ropes course"
+      caption: "",
+      alt: "Family photo 5"
     },
     {
       id: "photo-6",
       url: "/photos/dad 6.jpg",
-      caption: "Princess Ellie's 5th birthday. Pure chaos, laughs, and nobody taking themselves too seriously.",
-      alt: "Family celebration for Ellie's 5th birthday around the cake"
+      caption: "",
+      alt: "Family photo 6"
     },
     {
       id: "photo-7",
       url: "/photos/dad 7.jpg",
-      caption: "Kitchen table celebrations. The best moments are honestly just all of us crowded around good food.",
-      alt: "Family around the kitchen table with fruit tart and cake"
+      caption: "",
+      alt: "Family photo 7"
     },
     {
       id: "photo-8",
       url: "/photos/dad 8.jpg",
-      caption: "Freezing winter walk under the holiday lights. Bundled up and laughing through the cold.",
-      alt: "Night walk in the snow with lit up trees and warm drinks"
+      caption: "",
+      alt: "Family photo 8"
     },
     {
       id: "photo-9",
       url: "/photos/dad 9.jpg",
-      caption: "In-N-Out run! Animal style fries, milkshakes, and unmatched booth excitement.",
-      alt: "Family enjoying In-N-Out burgers and animal style fries"
+      caption: "",
+      alt: "Family photo 9"
     },
     {
       id: "photo-10",
       url: "/photos/dad 10.jpg",
-      caption: "Trail runs and hikes through the woods. You never run out of breath while I'm fighting for my life.",
-      alt: "Dad and Zachary hiking together on a trail in the forest"
+      caption: "",
+      alt: "Family photo 10"
     },
     {
       id: "photo-11",
       url: "/photos/dad 11.jpg",
-      caption: "Cloudy skies and big smiles. Ellie stealing the spotlight with the peace signs as usual.",
-      alt: "Family outdoor selfie looking up at the sky"
+      caption: "",
+      alt: "Family photo 11"
     },
     {
       id: "photo-12",
       url: "/photos/dad 12.jpg",
-      caption: "Dinner table debates, pirate treasure coins, and good times together.",
-      alt: "Dad, Ellie with her gold coin, and Zachary at restaurant dinner"
+      caption: "",
+      alt: "Family photo 12"
     },
     {
       id: "photo-13",
       url: "/photos/dad 13.jpg",
-      caption: "Cruise ship backdrop! One of those trips we'll still be talking about decades from now.",
-      alt: "Family selfie in front of the Norwegian cruise ship"
+      caption: "",
+      alt: "Family photo 13"
     },
     {
       id: "photo-14",
       url: "/photos/dad 14.jpg",
-      caption: "Exploring historic cobblestone streets in Europe. World travelers led by Dad.",
-      alt: "Family in historic European town square"
+      caption: "",
+      alt: "Family photo 14"
     },
     {
       id: "photo-15",
       url: "/photos/dad 15.jpg",
-      caption: "Mommy and Daddy. The real dynamic duo holding everything down for our whole family.",
-      alt: "Portrait of Dad and Mommy together in the garden sunshine"
+      caption: "",
+      alt: "Family photo 15"
     },
     {
       id: "photo-16",
       url: "/photos/dad 16.jpg",
-      caption: "Gardens by the Bay under the Supertrees. Nat could never resist sneaking bunny ears onto my head.",
-      alt: "Family at Singapore Gardens by the Bay under the Supertrees"
+      caption: "",
+      alt: "Family photo 16"
     },
     {
       id: "photo-17",
       url: "/photos/dad 17.jpg",
-      caption: "Staircase family photo in cozy sweaters. Home is wherever all of us are.",
-      alt: "Family sitting together on the stairs in warm sweaters"
+      caption: "",
+      alt: "Family photo 17"
     },
     {
       id: "photo-18",
       url: "/photos/dad 18.jpg",
-      caption: "Out for Japanese food. Getting older and growing up, but the laughs stay the exact same.",
-      alt: "Zachary, Mommy, and Dad at Japanese restaurant table"
+      caption: "",
+      alt: "Family photo 18"
     },
     {
       id: "photo-19",
       url: "/photos/dad 19.jpg",
-      caption: "Cheering on Nat at the Canadian Championships in Calgary! Always showing up for each other.",
-      alt: "Family at gymnastics championship supporting Nat"
+      caption: "",
+      alt: "Family photo 19"
     },
     {
       id: "photo-20",
       url: "/photos/dad 20.jpg",
-      caption: "Ready for launch! Front row ride buddy since day one.",
-      alt: "Zachary, Nat, and Dad seated on theme park ride"
+      caption: "",
+      alt: "Family photo 20"
     }
   ],
   miniInteractions: {

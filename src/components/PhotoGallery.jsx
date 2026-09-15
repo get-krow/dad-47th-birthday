@@ -200,19 +200,8 @@ export default function PhotoGallery({ content }) {
             </button>
           </div>
 
-          {/* Photo Caption & Indicator Dots */}
-          <div style={{ padding: '1.4rem 1.6rem', textAlign: 'center' }}>
-            <p style={{
-              fontSize: '1.05rem',
-              color: '#f1f5f9',
-              fontWeight: 500,
-              lineHeight: 1.6,
-              marginBottom: '1.2rem',
-              minHeight: '48px'
-            }}>
-              {currentPhoto.caption}
-            </p>
-
+          {/* Thumbnail Strip & Indicator Dots */}
+          <div style={{ padding: '1rem 1.4rem 1.2rem 1.4rem', textAlign: 'center' }}>
             {/* Thumbnail Navigation Row */}
             <div style={{
               display: 'flex',
@@ -341,24 +330,15 @@ export default function PhotoGallery({ content }) {
 
             <img 
               src={currentPhoto.url} 
-              alt={currentPhoto.caption}
+              alt={currentPhoto.alt || "Family memory"}
               style={{
                 maxWidth: '92vw',
-                maxHeight: '80vh',
+                maxHeight: '85vh',
                 objectFit: 'contain',
                 borderRadius: '8px',
                 boxShadow: '0 10px 40px rgba(0,0,0,0.8)'
               }}
             />
-            <p style={{
-              color: '#ffffff',
-              fontSize: '1rem',
-              marginTop: '1.2rem',
-              textAlign: 'center',
-              maxWidth: '650px'
-            }}>
-              {currentPhoto.caption}
-            </p>
           </div>
         )}
       </div>
